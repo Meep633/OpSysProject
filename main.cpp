@@ -1,6 +1,7 @@
 #include <iostream>
-#include <string>
 #include <cmath>
+#include <string>
+#include <vector>
 
 #include "process.h"
 #include "random.h"
@@ -65,14 +66,45 @@ int main(int argc, char **argv) {
 
     srand48(seed);
     std::cout << nextExp(lambda) << std::endl;
-    // for (int i = 0; i < 10; i++) {
-    //     std::cout << ceil(drand48() * 32) << " ";
-    // }
-    // std::cout << std::endl;
 
     //Generate processes
-    
+    std::vector<Process> processes;
+    for (int i = 0; i < numProcesses; i++) { 
+        std::string name(1, i/10 + 'A');
+        name += std::to_string(i%10);
+        
+        double arrivalTime = floor(nextExp(lambda));
+        while (arrivalTime > upperBound) {
+            arrivalTime = floor(nextExp(lambda));
+        }
+        
+        bool type = true;
+        if (i >= numCPUProcesses) {
+            type = false;
+        }
+        processes.push_back(Process(name, arrivalTime, type));
+        
+        int numCPUBursts = ceil(drand48() * 32);
+        for (int j = 1; j < numCPUBursts; j++) {
+            int cpuTime = ceil(nextExp(lambda));
+            int ioTime = ceil(nextExp(lambda)) * 8;
+            if (i < numCPUProcesses) {
+                cpuTime *= 4;
+                ioTime /= 8;
+            }
+            processes[processes.size()-1].addCPUBurst(cpuTime, true);
+            processes[processes.size()-1].addCPUBurst(ioTime, false);
+        }
+        int cpuTime = ceil(nextExp(lambda));
+        processes[processes.size()-1].addCPUBurst(cpuTime, true);
+    }
+#ifdef DEBUG
+    for (unsigned int i = 0; i < processes.size(); i++) {
+        processes[i].output(std::cout);
+        std::cout << "\n=============================================" << std::endl;
+    }
+#endif
 
-    std::cout << "Yippee!" << std::endl;
+
     return EXIT_SUCCESS;
 }
