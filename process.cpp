@@ -7,8 +7,20 @@ Process::Process(std::string name, double arrivalTime, bool type) {
     this->_bursts = std::vector<Burst>();
 }
 
-void Process::addCPUBurst(double burstTime, bool burstType) {
+void Process::addBurst(double burstTime, bool burstType) {
     this->_bursts.push_back(Burst(burstTime, burstType));
+}
+
+Burst& Process::burst(unsigned int ind) {
+    return this->_bursts[ind];
+}
+
+std::string Process::name() {
+    return this->_name;
+}
+
+double Process::arrivalTime() {
+    return this->_arrivalTime;
 }
 
 unsigned int Process::numBursts() {
