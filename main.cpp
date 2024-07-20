@@ -194,7 +194,10 @@ int main(int argc, char **argv) {
     }
     simout << "-- I/O-bound average CPU burst time: " << avg << " ms\n";
     
-    avg = ceil((cpuBoundCPUBurstSum + ioBoundCPUBurstSum)*1000 / (cpuBoundTotalCPUBursts + ioBoundTotalCPUBursts)) / 1000;
+    avg = 0;
+    if (cpuBoundTotalCPUBursts + ioBoundTotalCPUBursts > 0) {
+        avg = ceil((cpuBoundCPUBurstSum + ioBoundCPUBurstSum)*1000 / (cpuBoundTotalCPUBursts + ioBoundTotalCPUBursts)) / 1000;
+    }
     simout << "-- overall average CPU burst time: " << avg << " ms\n";
     
     avg = 0;
@@ -209,7 +212,10 @@ int main(int argc, char **argv) {
     }
     simout << "-- I/O-bound average I/O burst time: " << avg << " ms\n";
     
-    avg = ceil((cpuBoundIOBurstSum + ioBoundIOBurstSum)*1000 / (cpuBoundTotalIOBursts + ioBoundTotalIOBursts)) / 1000;
+    avg = 0;
+    if (cpuBoundTotalIOBursts + ioBoundTotalIOBursts > 0) {
+        avg = ceil((cpuBoundIOBurstSum + ioBoundIOBurstSum)*1000 / (cpuBoundTotalIOBursts + ioBoundTotalIOBursts)) / 1000;
+    }
     simout << "-- overall average I/O burst time: " << avg << " ms\n";
     
     simout.close();
