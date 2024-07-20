@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
 
     std::cout << "<<< PROJECT PART I" << std::endl;
     std::cout << "<<< -- process set (n=" << numProcesses << ") with " << numCPUProcesses << " CPU-bound process";
-    if (numCPUProcesses > 1) {
+    if (numCPUProcesses != 1) {
         std::cout << "es";
     }
     std::cout << std::endl; //need lambda to be exactly 6 digits after decimal
