@@ -9,6 +9,7 @@
 #include "random.h"
 
 #include "FCFS.cpp"
+#include <queue>
 
 int main(int argc, char **argv) {
     //Parse arguments
@@ -71,7 +72,7 @@ int main(int argc, char **argv) {
     srand48(seed);
 
     //Generate processes
-    std::vector<Process> processes;
+    std::priority_queue<Process, vector<Process>> processes;
     for (int i = 0; i < numProcesses; i++) { 
         std::string name(1, i/10 + 'A');
         name += std::to_string(i%10);
@@ -85,7 +86,9 @@ int main(int argc, char **argv) {
         if (i >= numCPUProcesses) {
             type = false;
         }
-        processes.push_back(Process(name, arrivalTime, type));
+
+        Process newProcess = Process(name, arrivalTime, type);
+        // processes.push_back(Process(name, arrivalTime, type));
         
         int numCPUBursts = ceil(drand48() * 32);
         for (int j = 1; j < numCPUBursts; j++) {
@@ -104,8 +107,8 @@ int main(int argc, char **argv) {
                 ioTime *= 8;
             }
 
-            processes[processes.size()-1].addBurst(cpuTime, true);
-            processes[processes.size()-1].addBurst(ioTime, false);
+            newProcess.addBurst(cpuTime, true);
+            newProcess.addBurst(ioTime, false);
         }
         int cpuTime = ceil(nextExp(lambda));
         while (cpuTime > upperBound) {
@@ -114,13 +117,15 @@ int main(int argc, char **argv) {
         if (i < numCPUProcesses) {
             cpuTime *= 4;
         }
-        processes[processes.size()-1].addBurst(cpuTime, true);
+        newProcess.addBurst(cpuTime, true);
+
+        processes.push(newProcess);
     }
 
     //Sort processes in accordance with algorithm
     //The algorithm will need to be run each time a new process arrives
     //Im not sure where new processes are added so I will just run it once
-    FCFS(processes);
+    // FCFS(processes);
 
     //Part 1 output
     double cpuBoundCPUBurstSum = 0;
