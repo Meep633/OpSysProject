@@ -14,7 +14,7 @@ public:
     void addBurst(double burstTime, bool burstType); //true = cpu burst, false = i/o burst
     Burst& burst(unsigned int ind);
     std::string name();
-    double arrivalTime();
+    double arrivalTime() const;
     unsigned int numBursts();
     bool type();
     std::ostream& output(std::ostream &out_str); //for testing

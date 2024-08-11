@@ -19,7 +19,7 @@ std::string Process::name() {
     return this->_name;
 }
 
-double Process::arrivalTime() {
+double Process::arrivalTime() const {
     return this->_arrivalTime;
 }
 

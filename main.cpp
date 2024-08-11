@@ -8,6 +8,8 @@
 #include "process.h"
 #include "random.h"
 
+#include "FCFS.cpp"
+
 int main(int argc, char **argv) {
     //Parse arguments
     if (argc != 6) {
@@ -114,6 +116,8 @@ int main(int argc, char **argv) {
         }
         processes[processes.size()-1].addBurst(cpuTime, true);
     }
+
+    FCFS(processes);
 
     //Part 1 output
     double cpuBoundCPUBurstSum = 0;
