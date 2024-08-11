@@ -12,7 +12,7 @@
 
 int main(int argc, char **argv) {
     //Parse arguments
-    if (argc != 6) {
+    if (argc != 9) {
         std::cerr << "ERROR: Invalid number of arguments" << std::endl;
         return EXIT_FAILURE;
     }
@@ -22,6 +22,9 @@ int main(int argc, char **argv) {
     long seed;
     double lambda;
     int upperBound;
+    int t_cs;
+    double alpha;
+    int t_slice;
 
     try {
         numProcesses = std::stoi(*(argv+1), NULL);
@@ -65,6 +68,33 @@ int main(int argc, char **argv) {
         }
     } catch (...) {
         std::cerr << "ERROR: Given upper bound (" << *(argv+5) << ") is not a valid int > 8" << std::endl;
+        return EXIT_FAILURE;
+    }
+    try {
+        t_cs = std::stoi(*(argv+6), NULL);
+        if (t_cs <= 0 || t_cs % 2 != 0) {
+            throw 0;
+        }
+    } catch (...) {
+        std::cerr << "ERROR: Given context switch time (" << *(argv+6) << ") is not a valid even positive integer" << std::endl;
+        return EXIT_FAILURE;
+    }
+    try {
+        alpha = std::stod(*(argv+7), NULL);
+        if (alpha < 0 || alpha > 1) {
+            throw 0;
+        }
+    } catch (...) {
+        std::cerr << "ERROR: Given alpha (" << *(argv+7) << ") is not a valid double in the range [0,1]" << std::endl;
+        return EXIT_FAILURE;
+    }
+    try {
+        t_slice = std::stoi(*(argv+8), NULL);
+        if (t_slice <= 0) {
+            throw 0;
+        }
+    } catch (...) {
+        std::cerr << "ERROR: Given time slice (" << *(argv+8) << ") is not a valid positive integer" << std::endl;
         return EXIT_FAILURE;
     }
 
