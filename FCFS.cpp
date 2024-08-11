@@ -4,6 +4,7 @@
 
 using namespace std;
 
+// Sorts the processes in order of First Come First Served
 void FCFS(vector<Process> &processes) {
     
     sort(processes.begin(), processes.end(), [](const Process &a, const Process &b) {
