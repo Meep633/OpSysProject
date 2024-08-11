@@ -4,10 +4,14 @@
 
 using namespace std;
 
-// Sorts the processes in order of First Come First Served
-void FCFS(vector<Process> &processes) {
-    
-    sort(processes.begin(), processes.end(), [](const Process &a, const Process &b) {
-        return a.arrivalTime() < b.arrivalTime();
-    });
-}
+// Compare type for std::priority_queue
+struct FCFS {
+    bool operator()(const Process& a, const Process& b) const {
+        return a.arrivalTime() > b.arrivalTime();
+    }
+};
+
+// // Sorts the processes in order of First Come First Served
+// bool FCFS(const Process &a, const Process &b) {
+//     return a.arrivalTime() < b.arrivalTime();
+// };

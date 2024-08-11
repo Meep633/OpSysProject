@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     srand48(seed);
 
     //Generate processes
-    std::priority_queue<Process, vector<Process>> processes;
+    std::priority_queue<Process, vector<Process>, FCFS> processes;
     for (int i = 0; i < numProcesses; i++) { 
         std::string name(1, i/10 + 'A');
         name += std::to_string(i%10);
@@ -152,7 +152,7 @@ int main(int argc, char **argv) {
         Process p = processes.top();
         processes.pop();
         i++;
-        
+
         if (p.type()) {
             std::cout << "CPU-bound process ";
         } else {
