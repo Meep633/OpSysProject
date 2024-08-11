@@ -12,11 +12,13 @@ void SJF(vector<Process> &processes) {
         for (int i = 0; i < a.numBursts(); i++) {
             if (a.burst(i).type) {
                 a_cpu += a.burst(i).time;
+                break;
             }
         }
         for (int i = 0; i < b.numBursts(); i++) {
             if (b.burst(i).type) {
                 b_cpu += b.burst(i).time;
+                break;
             }
         }
         return a_cpu < b_cpu;
