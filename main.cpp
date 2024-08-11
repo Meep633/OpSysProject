@@ -8,6 +8,8 @@
 #include "process.h"
 #include "random.h"
 
+#include "FCFS.cpp"
+
 int main(int argc, char **argv) {
     //Parse arguments
     if (argc != 6) {
@@ -114,6 +116,11 @@ int main(int argc, char **argv) {
         }
         processes[processes.size()-1].addBurst(cpuTime, true);
     }
+
+    //Sort processes in accordance with algorithm
+    //The algorithm will need to be run each time a new process arrives
+    //Im not sure where new processes are added so I will just run it once
+    FCFS(processes);
 
     //Part 1 output
     double cpuBoundCPUBurstSum = 0;

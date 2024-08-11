@@ -12,11 +12,11 @@ class Process {
 public:
     Process(std::string name, double arrivalTime, bool type);
     void addBurst(double burstTime, bool burstType); //true = cpu burst, false = i/o burst
-    Burst& burst(unsigned int ind);
-    std::string name();
-    double arrivalTime();
-    unsigned int numBursts();
-    bool type();
+    const Burst& burst(unsigned int ind) const;
+    std::string name() const;
+    double arrivalTime() const;
+    unsigned int numBursts() const;
+    bool type() const;
     std::ostream& output(std::ostream &out_str); //for testing
 private:
     std::string _name;

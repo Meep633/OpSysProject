@@ -11,23 +11,23 @@ void Process::addBurst(double burstTime, bool burstType) {
     this->_bursts.push_back(Burst(burstTime, burstType));
 }
 
-Burst& Process::burst(unsigned int ind) {
+const Burst& Process::burst(unsigned int ind) const {
     return this->_bursts[ind];
 }
 
-std::string Process::name() {
+std::string Process::name() const {
     return this->_name;
 }
 
-double Process::arrivalTime() {
+double Process::arrivalTime() const {
     return this->_arrivalTime;
 }
 
-unsigned int Process::numBursts() {
+unsigned int Process::numBursts() const {
     return this->_bursts.size();
 }
 
-bool Process::type() {
+bool Process::type() const {
     return this->_type;
 }
 
