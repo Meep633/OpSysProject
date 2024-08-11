@@ -146,38 +146,44 @@ int main(int argc, char **argv) {
     std::cout << "<<< -- seed=" << seed << "; lambda=";
     std::cout << std::fixed << lambda;
     std::cout << std::defaultfloat << "; bound=" << upperBound << std::endl;
-    for (unsigned int i = 0; i < processes.size(); i++) {
-        if (processes[i].type()) {
+
+    int i = 0;
+    while (processes.empty() == false) {
+        Process p = processes.top();
+        processes.pop();
+        i++;
+        
+        if (p.type()) {
             std::cout << "CPU-bound process ";
         } else {
             std::cout << "I/O-bound process ";
         }
-        std::cout << processes[i].name() << ": arrival time " << processes[i].arrivalTime() << "ms; " << processes[i].numBursts()/2 + 1 << " CPU burst";
-        if (processes[i].numBursts()/2 + 1 > 1) {
+        std::cout << p.name() << ": arrival time " << p.arrivalTime() << "ms; " << p.numBursts()/2 + 1 << " CPU burst";
+        if (p.numBursts()/2 + 1 > 1) {
             std::cout << "s";
         }
         std::cout << ":" << std::endl;
-        for (unsigned int j = 0; j < processes[i].numBursts(); j++) {
+        for (unsigned int j = 0; j < p.numBursts(); j++) {
             std::cout << "==> ";
             if (j % 2 == 0) {
-                std::cout << "CPU burst " << processes[i].burst(j).time << "ms";
-                if (j != processes[i].numBursts()-1) {
+                std::cout << "CPU burst " << p.burst(j).time << "ms";
+                if (j != p.numBursts()-1) {
                     std::cout << " ";
                 }
                 if ((int)i < numCPUProcesses) {
-                    cpuBoundCPUBurstSum += processes[i].burst(j).time;
+                    cpuBoundCPUBurstSum += p.burst(j).time;
                     cpuBoundTotalCPUBursts++;
                 } else {
-                    ioBoundCPUBurstSum += processes[i].burst(j).time;
+                    ioBoundCPUBurstSum += p.burst(j).time;
                     ioBoundTotalCPUBursts++;
                 }
             } else {
-                std::cout << "I/O burst " << processes[i].burst(j).time << "ms" << std::endl;
+                std::cout << "I/O burst " << p.burst(j).time << "ms" << std::endl;
                 if ((int)i < numCPUProcesses) {
-                    cpuBoundIOBurstSum += processes[i].burst(j).time;
+                    cpuBoundIOBurstSum += p.burst(j).time;
                     cpuBoundTotalIOBursts++;
                 } else {
-                    ioBoundIOBurstSum += processes[i].burst(j).time;
+                    ioBoundIOBurstSum += p.burst(j).time;
                     ioBoundTotalIOBursts++;
                 }
             }
