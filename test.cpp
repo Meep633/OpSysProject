@@ -9,11 +9,22 @@
 
 using namespace std;
 
+struct priority {
+    bool operator()(Burst& a, Burst& b) const { //assume first burst is a CPU burst
+        return true;
+    }
+};
+
 int main() {
-  vector<Burst> bursts;
-  Burst b1(10, true);
-  bursts.push_back(b1);
-  b1.time = 20;
-  cout << b1.time << " " << bursts[0].time << endl;
+  Burst b(10, true);
+
+  priority_queue<Burst, vector<Burst>, priority> queue;
+  queue.push(b);
+
+  Burst bu = queue.top();
+
+  b.setArrivalTime(11);
+  std::cout << b.arrivalTime() << " " << bu.arrivalTime() << std::endl;
+  
   return EXIT_SUCCESS;
 }
