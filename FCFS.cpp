@@ -64,15 +64,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
         //check if a cpu burst has completed
         if (cpuInUse) {
             Burst& burst = usingCPU.burst(0);
-            // if (totalTime >= 2744) { 
-            //     std::cout << "arrivalTime: " << burst.arrivalTime() << std::endl;
-            //     std::cout << "waitTime: " << burst.waitTime() << std::endl;
-            //     std::cout << "burstTime: " << burst.burstTime() << std::endl;
-            //     return; 
-            // }
-
             int finishTime = burst.arrivalTime() + burst.waitTime() + t_cs/2 + burst.burstTime();
-
             if (finishTime == totalTime) { //finished current CPU burst
                 //update stats
                 burst.setTurnaroundTime(totalTime - burst.arrivalTime() + t_cs/2); // + t_cs/2 to account for switch out
@@ -92,17 +84,20 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
                 usingCPU.removeBurst(0);
                 timeOfSwitchOut = totalTime;
 
-                if (totalTime < stopPrintTime) {
-                    std::cout << "time " << totalTime << "ms: Process " << usingCPU.name() << " completed "
-                                "a CPU burst; " << usingCPU.numCPUBursts() << " bursts to go ";
-                    printQueue(readyQueue);
-                }
-
                 if (usingCPU.numCPUBursts() == 0) {
-                    std::cout << "Process " << usingCPU.name() << " terminated ";
+                    std::cout << "time " << totalTime << "ms: Process " << usingCPU.name() << " terminated ";
                     printQueue(readyQueue);
                     terminatedProcesses++;
                 } else {
+                    if (totalTime < stopPrintTime) {
+                        std::cout << "time " << totalTime << "ms: Process " << usingCPU.name() << " completed "
+                                    "a CPU burst; " << usingCPU.numCPUBursts() << " burst";
+                        if (usingCPU.numCPUBursts() != 1) {
+                            std::cout << "s";
+                        }
+                        std::cout << " to go ";
+                        printQueue(readyQueue);
+                    }
                     usingCPU.burst(0).setArrivalTime(totalTime + t_cs/2); //time when i/o burst execution starts
                     ioQueue.push(usingCPU);
                     if (totalTime < stopPrintTime) {
@@ -156,6 +151,15 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
                     printQueue(readyQueue);
                 }
 
+                //if added process is at top of ready queue and cpu is ready to take in another process context switch happens immediately
+                if (readyQueue.top().name().compare(p.name()) == 0 && !cpuInUse && totalTime - timeOfSwitchOut >= t_cs/2) {
+                    timeOfSwitchIn = totalTime;
+                    p.setContextSwitching(true);
+                    p.burst(0).setWaitTime(p.burst(0).waitTime());
+                    readyQueue.pop();
+                    readyQueue.push(p);
+                }
+
                 ioQueue.pop();
                 if (!ioQueue.empty()) {
                     p = ioQueue.top();
@@ -176,7 +180,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
                 readyQueue.push(p); //don't need to set first cpu burst's arrival time since that was set in process generation
                 
                 if (totalTime < stopPrintTime) {
-                    std::cout << "time " << totalTime << "ms: Process " << p.name() << " arrived; adding to ready "
+                    std::cout << "time " << totalTime << "ms: Process " << p.name() << " arrived; added to ready "
                                 "queue ";
                     printQueue(readyQueue);
                 }
