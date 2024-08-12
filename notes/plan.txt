@@ -50,8 +50,8 @@ Stats to keep track of for whole algo simulation:
 For RR specifically:
 - Percentage of CPU bursts completed in one timeslice for CPU / I/O-bound / all processes
 
-Add things to Burst class
-First implement FCFS, then SJF and RR, then SRT
 Need to make copy constructors for Process and Burst if changes in algos to them affects initial vector
-
 Might need to comment out all part 1 output that begins with "==>" in std::cout
+
+1. Implement SJF and RR
+2. Implement SRT
