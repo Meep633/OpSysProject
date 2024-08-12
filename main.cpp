@@ -7,11 +7,9 @@
 
 #include "process.h"
 #include "random.h"
+#include "algos.h"
 
-#include "FCFS.cpp"
-#include <queue>
-
-void p1(const std::vector<Process> &processes, int numProcesses, int numCPUProcesses, long seed, double lambda, int upperBound);
+void p1(const std::vector<Process> &processes, int numProcesses, int numCPUProcesses, std::ofstream &simout);
 
 int main(int argc, char **argv) {
     //Parse arguments
@@ -110,7 +108,7 @@ int main(int argc, char **argv) {
         std::string name(1, i/10 + 'A');
         name += std::to_string(i%10);
         
-        double arrivalTime = floor(nextExp(lambda));
+        int arrivalTime = floor(nextExp(lambda));
         while (arrivalTime > upperBound) {
             arrivalTime = floor(nextExp(lambda));
         }
@@ -121,7 +119,6 @@ int main(int argc, char **argv) {
         }
 
         Process newProcess = Process(name, arrivalTime, type);
-        // processes.push_back(Process(name, arrivalTime, type));
         
         int numCPUBursts = ceil(drand48() * 32);
         for (int j = 1; j < numCPUBursts; j++) {
@@ -151,23 +148,34 @@ int main(int argc, char **argv) {
             cpuTime *= 4;
         }
         newProcess.addBurst(cpuTime, true);
+        newProcess.burst(0).setArrivalTime(arrivalTime); //initialize initial arrival time for burst
 
-        // processes.push(newProcess);
         processes.push_back(newProcess);
     }
 
-    //Sort processes in accordance with algorithm
-    //The algorithm will need to be run each time a new process arrives
-    //Im not sure where new processes are added so I will just run it once
-    // FCFS(processes);
+    std::ofstream simout("simout.txt");
 
-    p1(processes, numProcesses, numCPUProcesses, seed, lambda, upperBound);
-    //create priority queues here and simulate algos for p2
+    std::cout << "<<< PROJECT PART I" << std::endl;
+    std::cout << "<<< -- process set (n=" << numProcesses << ") with " << numCPUProcesses << " CPU-bound process";
+    if (numCPUProcesses != 1) {
+        std::cout << "es";
+    }
+    std::cout << std::endl;
+    std::cout << "<<< -- seed=" << seed << "; lambda=";
+    std::cout << std::fixed << lambda;
+    std::cout << std::defaultfloat << "; bound=" << upperBound << std::endl;
+    p1(processes, numProcesses, numCPUProcesses, simout);
+    
+    std::cout << "\n<<< PROJECT PART II" << std::endl;
+    std::cout << "<<< -- t_cs=" << t_cs << "ms; alpha=" << alpha << "; t_slice=" << t_slice << "ms" << std::endl; //MAKE SURE ALPHA HAS 2 NUMS AFTER DECIMAL POINT
+    FCFS(processes, numProcesses, t_cs, simout);
+
+    simout.close();
 
     return EXIT_SUCCESS;
 }
 
-void p1(const std::vector<Process> &processes, int numProcesses, int numCPUProcesses, long seed, double lambda, int upperBound) {
+void p1(const std::vector<Process> &processes, int numProcesses, int numCPUProcesses, std::ofstream &simout) {
     //Part 1 output
     double cpuBoundCPUBurstSum = 0;
     int cpuBoundTotalCPUBursts = 0;
@@ -178,16 +186,6 @@ void p1(const std::vector<Process> &processes, int numProcesses, int numCPUProce
     double ioBoundIOBurstSum = 0;
     int ioBoundTotalIOBursts = 0;
 
-    std::cout << "<<< PROJECT PART I" << std::endl;
-    std::cout << "<<< -- process set (n=" << numProcesses << ") with " << numCPUProcesses << " CPU-bound process";
-    if (numCPUProcesses != 1) {
-        std::cout << "es";
-    }
-    std::cout << std::endl; //need lambda to be exactly 6 digits after decimal
-    std::cout << "<<< -- seed=" << seed << "; lambda=";
-    std::cout << std::fixed << lambda;
-    std::cout << std::defaultfloat << "; bound=" << upperBound << std::endl;
-
     for (unsigned int i = 0; i < processes.size(); i++) {
         Process p = processes[i];
 
@@ -196,40 +194,38 @@ void p1(const std::vector<Process> &processes, int numProcesses, int numCPUProce
         } else {
             std::cout << "I/O-bound process ";
         }
-        std::cout << p.name() << ": arrival time " << p.arrivalTime() << "ms; " << p.numBursts()/2 + 1 << " CPU burst";
+        std::cout << p.name() << ": arrival time " << p.arrivalTime() << "ms; " << p.numCPUBursts() << " CPU burst";
         if (p.numBursts()/2 + 1 > 1) {
             std::cout << "s";
         }
         std::cout << ":" << std::endl;
         for (unsigned int j = 0; j < p.numBursts(); j++) {
             std::cout << "==> ";
-            if (j % 2 == 0) {
-                std::cout << "CPU burst " << p.burst(j).time << "ms";
+            if (p.burst(j).type()) {
+                std::cout << "CPU burst " << p.burst(j).burstTime() << "ms";
                 if (j != p.numBursts()-1) {
                     std::cout << " ";
                 }
                 if ((int)i < numCPUProcesses) {
-                    cpuBoundCPUBurstSum += p.burst(j).time;
+                    cpuBoundCPUBurstSum += p.burst(j).burstTime();
                     cpuBoundTotalCPUBursts++;
                 } else {
-                    ioBoundCPUBurstSum += p.burst(j).time;
+                    ioBoundCPUBurstSum += p.burst(j).burstTime();
                     ioBoundTotalCPUBursts++;
                 }
             } else {
-                std::cout << "I/O burst " << p.burst(j).time << "ms" << std::endl;
+                std::cout << "I/O burst " << p.burst(j).burstTime() << "ms" << std::endl;
                 if ((int)i < numCPUProcesses) {
-                    cpuBoundIOBurstSum += p.burst(j).time;
+                    cpuBoundIOBurstSum += p.burst(j).burstTime();
                     cpuBoundTotalIOBursts++;
                 } else {
-                    ioBoundIOBurstSum += p.burst(j).time;
+                    ioBoundIOBurstSum += p.burst(j).burstTime();
                     ioBoundTotalIOBursts++;
                 }
             }
         }
         std::cout << std::endl;
     }
-
-    std::ofstream simout("simout.txt");
 
     simout << "-- number of processes: " << numProcesses << "\n";
     simout << "-- number of CPU-bound processes: " << numCPUProcesses << "\n";
@@ -273,6 +269,4 @@ void p1(const std::vector<Process> &processes, int numProcesses, int numCPUProce
         avg = ceil((cpuBoundIOBurstSum + ioBoundIOBurstSum)*1000 / (cpuBoundTotalIOBursts + ioBoundTotalIOBursts)) / 1000;
     }
     simout << "-- overall average I/O burst time: " << avg << " ms\n";
-    
-    simout.close();
 }

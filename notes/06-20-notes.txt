@@ -1,0 +1,387 @@
+[06/20/2024]
+
+Exam 1
+-- please email Meredith (widmam@rpi.edu) and me (goldsd3@rpi.edu)
+    if you have a schedule conflict or extra-time accommodations
+
+
+Shortest Job First (SJF)
+
+    pid    CPU burst times
+    P1       18 ms  <== CPU-bound process
+    P2        3 ms  <== I/O-bound process
+    P3        4 ms  <== I/O-bound process
+
+==> P4 arrive at time 5 with a 7-ms CPU burst time
+
+    ready queue: P2 P3 P1
+
+  (assume that all three processes arrived at time 0...)
+
+  context switches         context switch
+      v   v    v                  v
+      +---+----+------------------+---------------------->
+ SJF: |P2 | P3 | P1               | idle...
+      +---+----+------------------+---------------------->
+   t: 0   3    7                  25
+
+    P1 has 7 ms wait time       P1 has 25 ms turnaround time
+    P2 has 0 wait time          P2 has 3 ms turnaround time
+    P3 has 3 ms wait time       P3 has 7 ms turnaround time
+
+ advantages: lower average wait/turnaround times (versus FCFS)
+
+             "good" low turnaround times (and therefore low respone times)
+              for interactive or I/O-bound processes
+
+ disadvantages: increased overhead due to the priority queue (log time)
+
+                increased complexity for implementation
+
+                processes with larger CPU burst times might end up
+                 facing INDEFINITE BLOCKING or STARVATION
+
+                we have no way of knowing ahead of time exactly
+                 what the CPU burst times will be for each process
+                  (we can only predict these CPU burst times...)
+
+ STARVATION: a process faces starvation if we know that the process
+              will NEVER complete its CPU burst
+
+ INDEFINITE BLOCKING: a process faces indefinite blocking if
+   (or POSTPONEMENT)   the time to complete its CPU burst is
+                        (very likely) comparatively long...
+
+
+
+
+
+
+Both FCFS and SJF are non-preemptive algorithms
+-- once a process starts using the CPU for its CPU burst,
+    it will continue UNINTERRUPTED until the burst is complete
+
+What if we added preemption to SJF?
+-- when process B arrives on the ready queue, it can potentially
+    PREEMPT and replace the currently running process A
+     iff B's CPU burst time is less than the
+      remaining CPU burst time for process A
+      ^^^^^^^^^
+
+If preemption does occur, we have an immediate context-switch
+
+
+Shortest Remaining Time (SRT)   <== SJF with preemption
+
+    pid    CPU burst times        arrival times
+    P1       18 ms                    0 ms
+    P2        3 ms                    2 ms
+    P3        4 ms                    3 ms
+    P4        3 ms                    5 ms
+
+ ready queue (at time 0): P1 (removed from the queue and runs with the CPU)
+
+ ready queue (at time 2): P1 (after the preemption)
+
+ ready queue (at time 3): P3 P1 (we add P3 at the front of the queue)
+
+   context switches...
+      v  v   v   v    v                v
+      +--+---+---+----+----------------+---------------------->
+ SRT: |P1|P2 |P4 | P3 | P1             | ..............
+      +--p---+---+----+----------------+---------------------->
+   t: 0  2   5   8    12               28
+
+  TO DO: calculate wait and turnaround times for each CPU burst...
+
+ advantages: lower average wait/turnaround times (versus FCFS and SJF);
+              SRT is "better" at getting I/O-bound or interactive
+               processes through the CPU even more quickly than SJF
+
+             "good" low turnaround times (and therefore low response times)
+              for interactive or I/O-bound processes
+
+ disadvantages: increased overhead due to the priority queue (log time)
+
+                increased complexity for implementation
+
+                processes with larger CPU burst times might end up
+                 facing INDEFINITE BLOCKING or STARVATION
+
+                we have no way of knowing ahead of time exactly
+                 what the CPU burst times will be for each process
+                  (we can only predict these CPU burst times...)
+
+                more context switches are likely (versus SJF)
+
+
+
+
+Priority scheduling algorithms (e.g., SJF and SRT)
+
+-- Each process is assigned a priority based on:
+   -- predicted CPU burst times (e.g., SJF/SRT)
+   -- ratio of CPU to I/O activity (predicted or expected)
+   -- system resource usage
+   -- arbitrary or hard-coded (user-defined?)
+
+-- The process with the highest priority gets scheduled
+    with the CPU first ==> this directs how we order the ready queue
+
+-- When multiple processes have the same priority, we need a
+    tie-breaker, which is a secondary algorithm on that subset
+     (e.g., just use FCFS)
+
+-- We decide (ahead of time) whether the algorithm is
+    preemptive (e.g., SRT) or non-preemptive (e.g., SJF)
+
+-- To help avoid starvation and indefinite blocking,
+    we can use AGING: if a given process is in the READY state
+     for some X amount of time, then we increase the priority of
+      that process by Y
+
+-- As a process is running with the CPU, would we change (lower?) its priority?
+
+
+
+
+
+ALGORITHM   PREEMPTION?     ADVANTAGE(S)           DISADVANTAGE(S)
+
+ FCFS       non-preemptive  easy to implement      long wait times
+                            minimal overhead       long turnaround times
+                            no starvation
+
+ SJF        non-preemptive  optimal (fastest)      starvation
+                             (least average        requires us to predict
+                               wait time)            CPU burst times
+
+ SRT        preemptive                             starvation
+                                                   requires us to predict
+                                                     CPU burst times
+
+ Priority   non-preemptive  finer control over     starvation
+             or preemptive    process order        (also increased overhead)
+
+ Priority   non-preemptive  no starvation          but we still have
+  w Aging    or preemptive                          long wait times for
+   (PWA)                                             low-priority processes
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+For SJF/SRT, we can predict the CPU burst times for
+ each process based on historical data, e.g., measures
+  of previous actual CPU burst times
+
+Let's use EXPONENTIAL AVERAGING (for EACH process):
+
+  alpha - constant in the range [0.0,1.0], often at least 0.5 or higher
+
+  tau   - estimated/predicted CPU burst time
+
+  t     - actual CPU burst time
+
+We apply the formula below separately to each process...
+ ...so we keep track of a tau value PER PROCESS
+
+  tau     =  alpha  x  t    +   (1-alpha)  x  tau
+     i+1                i                        i
+
+
+  e.g., with alpha set to 0.5
+
+
+  tau  = 10   <== initial guess --- could be random, hard-coded,
+     0                 a running average of the N previous actual
+                        CPU burst times across all processes, etc.
+
+  t  = 6      <== actual/observed (first) CPU burst time
+   0
+
+
+  tau  =  0.5 x t   +  0.5 x tau   =  0.5 x 6  +  0.5 x 10  =  8 (next guess)
+     1           0              0
+
+
+  t  = 4      <== actual/observed (second) CPU burst time
+   1
+
+
+  tau  =  0.5 x t  +  0.5 x tau   =  0.5 x 4  + 0.5 x 8  =  6 (next guess)
+     2           1             1
+
+
+  TO DO: calculate tau  etc. (given t , t , etc.)
+                      3              2   3
+
+  TO DO: re-calculate using different alpha values
+
+
+
+
+
+
+
+ROUND ROBIN (RR) ALGORITHM
+
+-- Essentially FCFS with a fixed time limit on each CPU burst
+   -- i.e., a timeslice or a time quantum
+
+-- When a process starts using the CPU for its current CPU burst,
+    a timer is set
+
+   -- The process either finishes its CPU burst before the
+       timer (timeslice) expires
+
+   -- Or...the process is PREEMPTED by the expiration of this timer,
+       in which case the process is added back to the end of the ready queue
+                                                      ^^^
+
+-- Selection of the timeslice is crucial
+
+   -- too large of a timeslice and we end up with FCFS
+
+   -- too small of a timeslice and we have way too many context switches
+
+   -- aim is to minimize turnaround times if we can get "most" of the
+       processes finishing their respective CPU burst times
+        within ONE timeslice
+
+   -- heuristic is ~80% of CPU burst times should be less than the timeslice
+
+
+-- As processes arrive, they simply get added to the end of the queue
+
+e.g., apply the RR algorithm to the processes listed below...
+      ...using a timeslice of 3ms
+
+
+   pid   CPU burst time      arrival time
+   P1      20 ms                 0 ms  <== the tie-breaker is PID order
+   P2       5 ms                 0 ms
+   P3       2 ms                 2 ms
+   P4      10 ms                 4 ms
+
+   initial ready queue: P1 P2
+
+   ready queue: 
+
+   RR (with a timeslice of 3ms)
+    |
+ P1 >XXXp    XXXp    XXXp  XXXp  XXXpXXXXX.
+ P2 >   XXXp       XX.
+ P3 | >    XX.
+ P4 |   >       XXXp    XXXp  XXXp  X.
+    +-------------------------------------------------> time
+               111111111122222222223333333333
+     0123456789012345678901234567890123456789
+
+    LEGEND:
+     > == process arrival
+     X == 1 ms of CPU burst time
+     p == preemption (based on timeslice expiration)
+     . == CPU burst completed
+
+    TO DO: calculate wait and turnaround times for each CPU burst
+            for each process
+
+    TO DO: repeat the above analysis using different timeslices,
+            e.g., 2ms, 1ms, 6ms, 20ms, etc. --- how can we determine
+             what the "optimal" timeslice is...?
+
+
+
+ALGORITHM   PREEMPTION?     ADVANTAGE(S)           DISADVANTAGE(S)
+
+ FCFS       non-preemptive  easy to implement      long wait times
+                            minimal overhead       long turnaround times
+                            no starvation
+
+ SJF        non-preemptive  optimal (fastest)      starvation
+                             (least average        requires us to predict
+                               wait time)            CPU burst times
+
+ SRT        preemptive                             starvation
+                                                   requires us to predict
+                                                     CPU burst times
+
+ Priority   non-preemptive  finer control over     starvation
+             or preemptive    process order        (also increased overhead)
+
+ Priority   non-preemptive  no starvation          but we still have
+  w Aging    or preemptive                          long wait times for
+   (PWA)                                             low-priority processes
+
+ RR         preemptive      no starvation          overhead
+
+                            favors either          tuning of the timeslice
+                             CPU-bound or
+                              I/O-bound?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    int * x = calloc( ... );
+
+    while ( 1 )
+    {
+      /* iterate and set each x value... */
+
+      .....
+
+      memset( ... );  /* ??? */
+    }
+
+    free( x );
+
+
+
+
+    while ( 1 )
+    {
+      int * x = calloc( ... );
+
+      .....
+
+      free( x );
+    }
+
+

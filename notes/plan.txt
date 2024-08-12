@@ -1,0 +1,57 @@
+Using the vector of processes you created in part 1, for each algo, create a priority queue:
+- FCFS = order by arrival time
+- SJF = order by next CPU burst time
+- SRT = order by next CPU burst time (if preempted, order the process by the remaining time in the CPU burst)
+- RR = order by arrival time (if preempted, order the process by when it was preempted)
+
+When a preemption happens in SRT, update remainingTime for burst before switching
+When a preemption happens in RR, update arrivalTime to time of preemption
+
+Need to keep track of time elapsed through each algo simulation, starting at t=0ms
+Print out stuff when:
+- Algo simulation starts
+
+- Process arrives (initial arrival and after I/O burst)
+- Process starts using CPU
+- Process finishes using CPU (finishes CPU burst)
+- Process starts I/O burst
+- Process finishes I/O burst
+- Process terminates (after final CPU burst)
+- End of algo simulation (all processes terminate)
+
+- Process recalculates tau (after each CPU burst finishes)
+- Process is preempted
+From t=10000ms and beyond, only print out process terminations and end of simulation
+
+Context switch happens when preemption happens in SRT/RR
+Prioritize stuff happening at the same time in this order:
+1. CPU burst completion
+2. Process starts using CPU burst
+3. I/O burst completion
+4. Process arrives
+- If multiple processes have the same thing happening at the same time, go in alphabetical name order
+
+Add to Burst class:
+- int turnaroundTime   -> time spent from arrival in queue (for each CPU burst, not the initial arrival) to 
+                          completion AND context switch out (t_cs/2)
+- int waitTime         -> time spent waiting in ready queue (only CPU bursts) (doesn't include context switch times)
+- int arrivalTime      -> time when arrived on queue
+
+Add to Process class:
+- int _tau              -> predicted CPU burst time (set to 1000 in constructor)
+- void setTau(int tau)
+
+Stats to keep track of for whole algo simulation:
+- CPU utilization (sum of all CPU burst times / time at end of simulation)
+- CPU / I/O-bound / overall average wait time (average wait time for a CPU burst in a CPU / I/O-bound / any process)
+- CPU / I/O-bound / overall average turnaround time
+- Number of context switches for CPU / I/O-bound / all processes
+- Number of preemptions for CPU / I/O-bound / all processes
+For RR specifically:
+- Percentage of CPU bursts completed in one timeslice for CPU / I/O-bound / all processes
+
+Add things to Burst class
+First implement FCFS, then SJF and RR, then SRT
+Need to make copy constructors for Process and Burst if changes in algos to them affects initial vector
+
+Might need to comment out all part 1 output that begins with "==>" in std::cout

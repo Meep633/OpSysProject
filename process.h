@@ -10,19 +10,29 @@
 
 class Process {
 public:
-    Process(std::string name, double arrivalTime, bool type);
-    void addBurst(double burstTime, bool burstType); //true = cpu burst, false = i/o burst
-    const Burst& burst(unsigned int ind) const;
-    std::string name() const;
-    double arrivalTime() const;
+    Process();
+    Process(std::string name, int arrivalTime, bool type);
+    void addBurst(int burstTime, bool burstType); //true = cpu burst, false = i/o burst
+    void removeBurst(unsigned int ind);
+    Burst& burst(unsigned int ind);
     unsigned int numBursts() const;
+    unsigned int numCPUBursts() const;
+    std::string name() const;
+    int arrivalTime() const;
     bool type() const;
+    bool contextSwitching() const;
+    void setContextSwitching(bool contextSwitching);
+    int tau() const;
+    void setTau(int tau);
     std::ostream& output(std::ostream &out_str); //for testing
 private:
-    std::string _name;
-    double _arrivalTime;
-    bool _type; //true = cpu-bound, false = i/o-bound
     std::vector<Burst> _bursts;
+    int _numCPUBursts;
+    std::string _name;
+    int _arrivalTime;
+    bool _type; //true = cpu-bound, false = i/o-bound
+    bool _contextSwitching;
+    int _tau;
 };
 
 #endif

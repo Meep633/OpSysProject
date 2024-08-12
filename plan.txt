@@ -1,7 +1,0 @@
-Using the vector of processes you created in part 1, for each algo, create a priority queue:
-- FCFS = order by arrival time
-- SJF = order by next CPU burst time
-- SRT = order by next CPU burst time (if preempted, order the process by the remaining time in the CPU burst)
-- RR = order by arrival time (if preempted, order the process by when it was preempted)
-
-Need to keep track of time elapsed through the simulation, starting at t=0ms
