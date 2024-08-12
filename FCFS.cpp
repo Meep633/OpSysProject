@@ -42,14 +42,15 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
     int timeOfSwitchIn = 0;
 
     //stats
-    int cpuBurstTimeSum = 0;
-    int cpuBoundWaitTimeSum = 0;
-    int ioBoundWaitTimeSum = 0;
-    int cpuBoundTurnaroundTimeSum = 0;
-    int ioBoundTurnaroundTimeSum = 0;
+    double cpuBurstTimeSum = 0;
+    double cpuBoundWaitTimeSum = 0;
+    double ioBoundWaitTimeSum = 0;
+    double cpuBoundTurnaroundTimeSum = 0;
+    double ioBoundTurnaroundTimeSum = 0;
     int numCPUBoundCPUBursts = 0;
     int numIOBoundCPUBursts = 0;
-    int numContextSwitches = 0;
+    int numCPUBoundContextSwitches = 0;
+    int numIOBoundContextSwitches = 0;
 
     int stopPrintTime = 10000;
 #ifdef DEBUG
@@ -69,15 +70,16 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
                 //update stats
                 burst.setTurnaroundTime(totalTime - burst.arrivalTime() + t_cs/2); // + t_cs/2 to account for switch out
                 cpuBurstTimeSum += burst.burstTime();
-                numContextSwitches++;
                 if (usingCPU.type()) { //cpu-bound process
                     cpuBoundWaitTimeSum += burst.waitTime();
                     cpuBoundTurnaroundTimeSum += burst.turnaroundTime();
                     numCPUBoundCPUBursts++;
+                    numCPUBoundContextSwitches++;
                 } else { //i/o-bound process
                     ioBoundWaitTimeSum += burst.waitTime();
                     ioBoundTurnaroundTimeSum += burst.turnaroundTime();
                     numIOBoundCPUBursts++;
+                    numIOBoundContextSwitches++;
                 }
 
                 cpuInUse = false;
@@ -198,5 +200,49 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
     printQueue(readyQueue);
 
     //print stats
-    
+    simout << "Algorithm FCFS\n";
+    simout << "-- CPU utilization: " << cpuBurstTimeSum / totalTime * 100 << "%\n";
+
+    double avg = 0;
+    if (numCPUBoundCPUBursts != 0) {
+        avg = cpuBoundWaitTimeSum / numCPUBoundCPUBursts;
+    }
+    simout << "-- CPU-bound average wait time: " << avg << " ms\n";
+
+    avg = 0;
+    if (numIOBoundCPUBursts != 0) {
+        avg = ioBoundWaitTimeSum / numIOBoundCPUBursts;
+    } 
+    simout << "-- I/O-bound average wait time: " << avg << " ms\n";
+
+    avg = 0;
+    if (numCPUBoundCPUBursts + numIOBoundCPUBursts != 0) {
+        avg = (cpuBoundWaitTimeSum + ioBoundWaitTimeSum) / (numCPUBoundCPUBursts + numIOBoundCPUBursts);
+    }
+    simout << "-- overall average wait time: " << avg << " ms\n";
+
+    avg = 0;
+    if (numCPUBoundCPUBursts != 0) {
+        avg = cpuBoundTurnaroundTimeSum / numCPUBoundCPUBursts;
+    }
+    simout << "-- CPU-bound average turnaround time: " << avg << " ms\n";
+
+    avg = 0;
+    if (numIOBoundCPUBursts != 0) {
+        avg = ioBoundTurnaroundTimeSum / numIOBoundCPUBursts;
+    } 
+    simout << "-- I/O-bound average turnaround time: " << avg << " ms\n";
+
+    avg = 0;
+    if (numCPUBoundCPUBursts + numIOBoundCPUBursts != 0) {
+        avg = (cpuBoundTurnaroundTimeSum + ioBoundTurnaroundTimeSum) / (numCPUBoundCPUBursts + numIOBoundCPUBursts);
+    }
+    simout << "-- overall average turnaround time: " << avg << " ms\n";
+
+    simout << "-- CPU-bound number of context switches: " << numCPUBoundContextSwitches << "\n";
+    simout << "-- I/O-bound number of context switches: " << numIOBoundContextSwitches << "\n";
+    simout << "-- overall number of context switches: " << numCPUBoundContextSwitches + numIOBoundContextSwitches << "\n";
+    simout << "-- -- CPU-bound number of preemptions: 0\n";
+    simout << "-- I/O-bound number of preemptions: 0\n";
+    simout << "-- overall number of preemptions: 0\n";
 }
