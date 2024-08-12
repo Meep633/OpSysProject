@@ -63,8 +63,17 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
     while (!(terminatedProcesses == numProcesses && totalTime - timeOfSwitchOut == t_cs/2)) { //sim ends when all processes terminated and last process switched out
         //check if a cpu burst has completed
         if (cpuInUse) {
-            Burst burst = usingCPU.burst(0);
-            if (burst.arrivalTime() + burst.burstTime() + t_cs/2 == totalTime) { //finished current CPU burst
+            Burst& burst = usingCPU.burst(0);
+            // if (totalTime >= 2744) { 
+            //     std::cout << "arrivalTime: " << burst.arrivalTime() << std::endl;
+            //     std::cout << "waitTime: " << burst.waitTime() << std::endl;
+            //     std::cout << "burstTime: " << burst.burstTime() << std::endl;
+            //     return; 
+            // }
+
+            int finishTime = burst.arrivalTime() + burst.waitTime() + t_cs/2 + burst.burstTime();
+
+            if (finishTime == totalTime) { //finished current CPU burst
                 //update stats
                 burst.setTurnaroundTime(totalTime - burst.arrivalTime() + t_cs/2); // + t_cs/2 to account for switch out
                 cpuBurstTimeSum += burst.burstTime();
@@ -110,9 +119,9 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
         if (!readyQueue.empty() && !cpuInUse && (timeOfSwitchOut == 0 || totalTime - timeOfSwitchOut >= t_cs/2)) {
             Process p = readyQueue.top();
             if (p.contextSwitching() && totalTime - timeOfSwitchIn == t_cs/2) {
+                p.setContextSwitching(false);
                 usingCPU = p;
                 cpuInUse = true;
-                p.setContextSwitching(false);
                 readyQueue.pop();
                 if (totalTime < stopPrintTime) {
                     std::cout << "time " << totalTime << "ms: Process " << p.name() << " started using the "
@@ -120,11 +129,11 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
                     printQueue(readyQueue);
                 }
             } else if (!p.contextSwitching()) {
-                Burst burst = p.burst(0);
+                Burst& burst = p.burst(0);
                 burst.setWaitTime(burst.waitTime() + totalTime - burst.arrivalTime()); //add to prev wait time is important for SRT and RR cuz of preemptions
                 p.setContextSwitching(true);
-                readyQueue.pop();
-                readyQueue.push(p);
+                readyQueue.pop(); 
+                readyQueue.push(p); //queue.top() returns a const ref so need to reinsert after making changes
                 timeOfSwitchIn = totalTime;
             }
             //check if a process started using a cpu burst
