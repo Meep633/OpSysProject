@@ -61,6 +61,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
 
     std::cout << "time 0ms: Simulator started for FCFS ";
     printQueue(readyQueue);
+
     while (!(terminatedProcesses == numProcesses && totalTime - timeOfSwitchOut == t_cs/2)) { //sim ends when all processes terminated and last process switched out
         //check if a cpu burst has completed
         if (cpuInUse) {
@@ -133,10 +134,6 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
                 readyQueue.push(p); //queue.top() returns a const ref so need to reinsert after making changes
                 timeOfSwitchIn = totalTime;
             }
-            //check if a process started using a cpu burst
-            //make sure to set cpuInUse to true and usingCPU to the top process
-            //things to check: cpuInUse, contextSwitchIn, totalTime - timeOfSwitchIn, contextSwitchOut, totalTime - timeOfSwitchOut
-            //need to update the burst's wait time here (DO NOT INCLUDE SWITCH IN TIME)
         }
 
         //check if an i/o burst completed
@@ -153,6 +150,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
                     printQueue(readyQueue);
                 }
 
+                //might be specific to FCFS
                 //if added process is at top of ready queue and cpu is ready to take in another process context switch happens immediately
                 if (readyQueue.top().name().compare(p.name()) == 0 && !cpuInUse && totalTime - timeOfSwitchOut >= t_cs/2) {
                     timeOfSwitchIn = totalTime;
@@ -174,6 +172,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
         if (!processQueue.empty()) {
             Process p = processQueue.top();
             while (!processQueue.empty() && totalTime == p.arrivalTime()) {
+                //might be specific to FCFS
                 if (timeOfSwitchIn == 0) { //only do this for first process so it can switch in immediately
                     timeOfSwitchIn = totalTime;
                     p.setContextSwitching(true); //dont need to update wait time since doesn't include context switch time
@@ -196,6 +195,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
 
         totalTime++;
     }
+
     std::cout << "time " << totalTime << "ms: Simulator ended for FCFS ";
     printQueue(readyQueue);
 
