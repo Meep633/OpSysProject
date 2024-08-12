@@ -55,3 +55,4 @@ Might need to comment out all part 1 output that begins with "==>" in std::cout
 
 1. Implement SJF and RR
 2. Implement SRT
+3. Fix any precision/rounding printing errors (alpha, CPU utilization)

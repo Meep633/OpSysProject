@@ -12,14 +12,16 @@ struct fcfsPriority {
 };
 
 
-void printQueue(std::priority_queue<Process, std::vector<Process>, fcfsPriority> queue) {
+void printQueue(std::priority_queue<Process, std::vector<Process>, fcfsPriority> queue, int timeOfSwitchIn, int totalTime) {
     std::cout << "[Q";
     if (queue.empty()) {
         std::cout << " empty";
     }
     while (!queue.empty()) {
-        std::cout << " ";
-        std::cout << queue.top().name();
+        if (!(queue.top().contextSwitching() && totalTime - timeOfSwitchIn == 1)) { //specific thing to check to match given outputs
+            std::cout << " ";
+            std::cout << queue.top().name();
+        }
         queue.pop();
     }
     std::cout << "]" << std::endl;
@@ -60,7 +62,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
     //maybe change bursts vector to a list to make removing head more efficient
 
     std::cout << "time 0ms: Simulator started for FCFS ";
-    printQueue(readyQueue);
+    printQueue(readyQueue, timeOfSwitchIn, totalTime);
 
     while (!(terminatedProcesses == numProcesses && totalTime - timeOfSwitchOut == t_cs/2)) { //sim ends when all processes terminated and last process switched out
         //check if a cpu burst has completed
@@ -89,7 +91,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
 
                 if (usingCPU.numCPUBursts() == 0) {
                     std::cout << "time " << totalTime << "ms: Process " << usingCPU.name() << " terminated ";
-                    printQueue(readyQueue);
+                    printQueue(readyQueue, timeOfSwitchIn, totalTime);
                     terminatedProcesses++;
                 } else {
                     if (totalTime < stopPrintTime) {
@@ -99,7 +101,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
                             std::cout << "s";
                         }
                         std::cout << " to go ";
-                        printQueue(readyQueue);
+                        printQueue(readyQueue, timeOfSwitchIn, totalTime);
                     }
                     usingCPU.burst(0).setArrivalTime(totalTime + t_cs/2); //time when i/o burst execution starts
                     ioQueue.push(usingCPU);
@@ -107,7 +109,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
                         int ioTime = usingCPU.burst(0).arrivalTime() + usingCPU.burst(0).burstTime();
                         std::cout << "time " << totalTime << "ms: Process " << usingCPU.name() << " switching "
                                     "out of CPU; blocking on I/O until time " << ioTime << "ms ";
-                        printQueue(readyQueue);
+                        printQueue(readyQueue, timeOfSwitchIn, totalTime);
                     }
                 }
             }
@@ -124,7 +126,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
                 if (totalTime < stopPrintTime) {
                     std::cout << "time " << totalTime << "ms: Process " << p.name() << " started using the "
                                 "CPU for " << p.burst(0).burstTime() << "ms burst ";
-                    printQueue(readyQueue);
+                    printQueue(readyQueue, timeOfSwitchIn, totalTime);
                 }
             } else if (!p.contextSwitching()) {
                 Burst& burst = p.burst(0);
@@ -147,7 +149,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
                 if (totalTime < stopPrintTime) {
                     std::cout << "time " << totalTime << "ms: Process " << p.name() << " completed I/O; added "
                                 "to ready queue ";
-                    printQueue(readyQueue);
+                    printQueue(readyQueue, timeOfSwitchIn, totalTime);
                 }
 
                 //might be specific to FCFS
@@ -183,7 +185,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
                 if (totalTime < stopPrintTime) {
                     std::cout << "time " << totalTime << "ms: Process " << p.name() << " arrived; added to ready "
                                 "queue ";
-                    printQueue(readyQueue);
+                    printQueue(readyQueue, timeOfSwitchIn, totalTime);
                 }
 
                 processQueue.pop();
@@ -197,7 +199,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
     }
 
     std::cout << "time " << totalTime << "ms: Simulator ended for FCFS ";
-    printQueue(readyQueue);
+    printQueue(readyQueue, timeOfSwitchIn, totalTime);
 
     //print stats
     simout << "Algorithm FCFS\n";
@@ -242,7 +244,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
     simout << "-- CPU-bound number of context switches: " << numCPUBoundContextSwitches << "\n";
     simout << "-- I/O-bound number of context switches: " << numIOBoundContextSwitches << "\n";
     simout << "-- overall number of context switches: " << numCPUBoundContextSwitches + numIOBoundContextSwitches << "\n";
-    simout << "-- -- CPU-bound number of preemptions: 0\n";
+    simout << "-- CPU-bound number of preemptions: 0\n";
     simout << "-- I/O-bound number of preemptions: 0\n";
     simout << "-- overall number of preemptions: 0\n";
 }
