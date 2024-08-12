@@ -11,6 +11,8 @@
 #include "FCFS.cpp"
 #include <queue>
 
+void p1(const std::vector<Process> &processes, int numProcesses, int numCPUProcesses, long seed, double lambda, int upperBound);
+
 int main(int argc, char **argv) {
     //Parse arguments
     if (argc != 9) {
@@ -102,7 +104,8 @@ int main(int argc, char **argv) {
     srand48(seed);
 
     //Generate processes
-    std::priority_queue<Process, vector<Process>, FCFS> processes;
+    // std::priority_queue<Process, vector<Process>, FCFS> processes;
+    std::vector<Process> processes;
     for (int i = 0; i < numProcesses; i++) { 
         std::string name(1, i/10 + 'A');
         name += std::to_string(i%10);
@@ -149,7 +152,8 @@ int main(int argc, char **argv) {
         }
         newProcess.addBurst(cpuTime, true);
 
-        processes.push(newProcess);
+        // processes.push(newProcess);
+        processes.push_back(newProcess);
     }
 
     //Sort processes in accordance with algorithm
@@ -157,6 +161,13 @@ int main(int argc, char **argv) {
     //Im not sure where new processes are added so I will just run it once
     // FCFS(processes);
 
+    p1(processes, numProcesses, numCPUProcesses, seed, lambda, upperBound);
+    //create priority queues here and simulate algos for p2
+
+    return EXIT_SUCCESS;
+}
+
+void p1(const std::vector<Process> &processes, int numProcesses, int numCPUProcesses, long seed, double lambda, int upperBound) {
     //Part 1 output
     double cpuBoundCPUBurstSum = 0;
     int cpuBoundTotalCPUBursts = 0;
@@ -177,11 +188,8 @@ int main(int argc, char **argv) {
     std::cout << std::fixed << lambda;
     std::cout << std::defaultfloat << "; bound=" << upperBound << std::endl;
 
-    int i = 0;
-    while (processes.empty() == false) {
-        Process p = processes.top();
-        processes.pop();
-        i++;
+    for (unsigned int i = 0; i < processes.size(); i++) {
+        Process p = processes[i];
 
         if (p.type()) {
             std::cout << "CPU-bound process ";
@@ -267,6 +275,4 @@ int main(int argc, char **argv) {
     simout << "-- overall average I/O burst time: " << avg << " ms\n";
     
     simout.close();
-
-    return EXIT_SUCCESS;
 }
