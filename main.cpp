@@ -170,6 +170,7 @@ int main(int argc, char **argv) {
     std::cout << "\n<<< PROJECT PART II" << std::endl;
     std::cout << "<<< -- t_cs=" << t_cs << "ms; alpha=" << alpha << "; t_slice=" << t_slice << "ms" << std::endl; //MAKE SURE ALPHA HAS 2 NUMS AFTER DECIMAL POINT
     FCFS(processes, numProcesses, t_cs, simout);
+    SJF(processes, numProcesses, t_cs, simout, alpha);
 
     simout.close();
 
