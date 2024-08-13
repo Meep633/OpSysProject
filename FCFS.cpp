@@ -44,11 +44,11 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
     int timeOfSwitchIn = 0;
 
     //stats
-    double cpuBurstTimeSum = 0;
-    double cpuBoundWaitTimeSum = 0;
-    double ioBoundWaitTimeSum = 0;
-    double cpuBoundTurnaroundTimeSum = 0;
-    double ioBoundTurnaroundTimeSum = 0;
+    int cpuBurstTimeSum = 0;
+    int cpuBoundWaitTimeSum = 0;
+    int ioBoundWaitTimeSum = 0;
+    int cpuBoundTurnaroundTimeSum = 0;
+    int ioBoundTurnaroundTimeSum = 0;
     int numCPUBoundCPUBursts = 0;
     int numIOBoundCPUBursts = 0;
     int numCPUBoundContextSwitches = 0;
@@ -203,41 +203,42 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
 
     //print stats
     simout << "Algorithm FCFS\n";
-    simout << "-- CPU utilization: " << cpuBurstTimeSum / totalTime * 100 << "%\n";
+    simout << "-- CPU utilization: " << ceil((cpuBurstTimeSum*1000.0*100) / totalTime)/1000.0 << "%\n";
 
     double avg = 0;
+    // float avg = numCPUBoundCPUBursts ? (ceil((totalTime * 1000.0) / totalNum) / 1000.0):0.f;
     if (numCPUBoundCPUBursts != 0) {
-        avg = cpuBoundWaitTimeSum / numCPUBoundCPUBursts;
+        avg = ceil((cpuBoundWaitTimeSum*1000.0) / numCPUBoundCPUBursts)/1000.0;
     }
     simout << "-- CPU-bound average wait time: " << avg << " ms\n";
 
     avg = 0;
     if (numIOBoundCPUBursts != 0) {
-        avg = ioBoundWaitTimeSum / numIOBoundCPUBursts;
+        avg = ceil((ioBoundWaitTimeSum*1000.0) / numIOBoundCPUBursts)/1000.0;
     } 
     simout << "-- I/O-bound average wait time: " << avg << " ms\n";
 
     avg = 0;
     if (numCPUBoundCPUBursts + numIOBoundCPUBursts != 0) {
-        avg = (cpuBoundWaitTimeSum + ioBoundWaitTimeSum) / (numCPUBoundCPUBursts + numIOBoundCPUBursts);
+        avg = ceil(((cpuBoundWaitTimeSum + ioBoundWaitTimeSum)*1000.0) / (numCPUBoundCPUBursts + numIOBoundCPUBursts))/1000.0;
     }
     simout << "-- overall average wait time: " << avg << " ms\n";
 
     avg = 0;
     if (numCPUBoundCPUBursts != 0) {
-        avg = cpuBoundTurnaroundTimeSum / numCPUBoundCPUBursts;
+        avg = ceil((cpuBoundTurnaroundTimeSum*1000.0) / numCPUBoundCPUBursts)/1000.0;
     }
     simout << "-- CPU-bound average turnaround time: " << avg << " ms\n";
 
     avg = 0;
     if (numIOBoundCPUBursts != 0) {
-        avg = ioBoundTurnaroundTimeSum / numIOBoundCPUBursts;
+        avg = ceil((ioBoundTurnaroundTimeSum*1000.0) / numIOBoundCPUBursts)/1000.0;
     } 
     simout << "-- I/O-bound average turnaround time: " << avg << " ms\n";
 
     avg = 0;
     if (numCPUBoundCPUBursts + numIOBoundCPUBursts != 0) {
-        avg = (cpuBoundTurnaroundTimeSum + ioBoundTurnaroundTimeSum) / (numCPUBoundCPUBursts + numIOBoundCPUBursts);
+        avg = ceil(((cpuBoundTurnaroundTimeSum + ioBoundTurnaroundTimeSum)*1000.0) / (numCPUBoundCPUBursts + numIOBoundCPUBursts))/1000.0;
     }
     simout << "-- overall average turnaround time: " << avg << " ms\n";
 
