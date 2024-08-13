@@ -107,7 +107,7 @@ void SJF(const std::vector<Process> &processes, int numProcesses, int t_cs, std:
                     }
                     //update tau (specific to SJF)
                     // std::cout << "BT" << burstTime << " tau" << usingCPU.tau() << " alpha" << alpha << std::endl;
-                    int tau = (int)((alpha * burstTime) + ((1-alpha) * usingCPU.tau()));
+                    int tau = ceil((alpha * burstTime) + ((1-alpha) * usingCPU.tau()));
                     if (totalTime < stopPrintTime) {
                         std::cout << "time " << totalTime << "ms: Recalculated tau for process " << usingCPU.name() << ": old tau " << usingCPU.tau()
                                     << "ms ==> new tau " << tau << "ms ";
