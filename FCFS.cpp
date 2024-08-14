@@ -42,6 +42,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
     Process usingCPU;
     int timeOfSwitchOut = 0;
     int timeOfSwitchIn = 0;
+    Process switchingIn;
 
     //stats
     int cpuBurstTimeSum = 0;
@@ -115,26 +116,15 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
             }
         }
 
-        //check if a process can start using the cpu to execute a cpu burst (no process can be executing burst and context switch out must finish first)
-        if (!readyQueue.empty() && !cpuInUse && (timeOfSwitchOut == 0 || totalTime - timeOfSwitchOut >= t_cs/2)) {
-            Process p = readyQueue.top();
-            if (p.contextSwitching() && totalTime - timeOfSwitchIn == t_cs/2) {
-                p.setContextSwitching(false);
-                usingCPU = p;
-                cpuInUse = true;
-                readyQueue.pop();
-                if (totalTime < stopPrintTime) {
-                    std::cout << "time " << totalTime << "ms: Process " << p.name() << " started using the "
-                                "CPU for " << p.burst(0).burstTime() << "ms burst ";
-                    printQueue(readyQueue, timeOfSwitchIn, totalTime);
-                }
-            } else if (!p.contextSwitching()) {
-                Burst& burst = p.burst(0);
-                burst.setWaitTime(burst.waitTime() + totalTime - burst.arrivalTime()); //add to prev wait time is important for SRT and RR cuz of preemptions
-                p.setContextSwitching(true);
-                readyQueue.pop(); 
-                readyQueue.push(p); //queue.top() returns a const ref so need to reinsert after making changes
-                timeOfSwitchIn = totalTime;
+        //check if a process can start using the cpu to execute a cpu burst (no process can be executing burst and context switch must finish first)
+        if (!cpuInUse && (timeOfSwitchOut == 0 || totalTime - timeOfSwitchOut >= t_cs/2) && totalTime - timeOfSwitchIn == t_cs/2 && switchingIn.contextSwitching()) {
+            usingCPU = switchingIn;
+            usingCPU.setContextSwitching(false);
+            cpuInUse = true;
+            if (totalTime < stopPrintTime) {
+                std::cout << "time " << totalTime << "ms: Process " << usingCPU.name() << " started using the "
+                            "CPU for " << usingCPU.burst(0).burstTime() << "ms burst ";
+                printQueue(readyQueue, timeOfSwitchIn, totalTime);
             }
         }
 
@@ -151,17 +141,6 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
                                 "to ready queue ";
                     printQueue(readyQueue, timeOfSwitchIn, totalTime);
                 }
-
-                //might be specific to FCFS
-                //if added process is at top of ready queue and cpu is ready to take in another process context switch happens immediately
-                if (readyQueue.top().name().compare(p.name()) == 0 && !cpuInUse && totalTime - timeOfSwitchOut >= t_cs/2) {
-                    timeOfSwitchIn = totalTime;
-                    p.setContextSwitching(true);
-                    p.burst(0).setWaitTime(p.burst(0).waitTime());
-                    readyQueue.pop();
-                    readyQueue.push(p);
-                }
-
                 ioQueue.pop();
                 if (!ioQueue.empty()) {
                     p = ioQueue.top();
@@ -174,24 +153,29 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
         if (!processQueue.empty()) {
             Process p = processQueue.top();
             while (!processQueue.empty() && totalTime == p.arrivalTime()) {
-                //might be specific to FCFS
-                if (timeOfSwitchIn == 0) { //only do this for first process so it can switch in immediately
-                    timeOfSwitchIn = totalTime;
-                    p.setContextSwitching(true); //dont need to update wait time since doesn't include context switch time
-                }
-                
                 readyQueue.push(p); //don't need to set first cpu burst's arrival time since that was set in process generation
-                
                 if (totalTime < stopPrintTime) {
                     std::cout << "time " << totalTime << "ms: Process " << p.name() << " arrived; added to ready "
                                 "queue ";
                     printQueue(readyQueue, timeOfSwitchIn, totalTime);
                 }
-
                 processQueue.pop();
                 if (!processQueue.empty()) {
                     p = processQueue.top();
                 }
+            }
+        }
+
+        //cpu is ready to take in a new cpu burst -> start context switch in
+        if (!readyQueue.empty() && !cpuInUse && (timeOfSwitchOut == 0 || totalTime - timeOfSwitchOut >= t_cs/2)) {
+            Process p = readyQueue.top();
+            if (timeOfSwitchIn == 0 || totalTime - timeOfSwitchIn >= t_cs/2) {
+                readyQueue.pop(); 
+                Burst& burst = p.burst(0);
+                burst.setWaitTime(burst.waitTime() + totalTime - burst.arrivalTime()); //add to prev wait time is important for SRT and RR cuz of preemptions
+                p.setContextSwitching(true);
+                switchingIn = p;
+                timeOfSwitchIn = totalTime;
             }
         }
 

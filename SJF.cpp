@@ -129,7 +129,7 @@ void SJF(const std::vector<Process> &processes, int numProcesses, int t_cs, std:
             }
         }
 
-        //check if a process can start using the cpu to execute a cpu burst (no process can be executing burst and context switch out must finish first)
+        //check if a process can start using the cpu to execute a cpu burst (no process can be executing burst and context switch must finish first)
         if (!cpuInUse && (timeOfSwitchOut == 0 || totalTime - timeOfSwitchOut >= t_cs/2) && totalTime - timeOfSwitchIn == t_cs/2 && switchingIn.contextSwitching()) {
             usingCPU = switchingIn;
             usingCPU.setContextSwitching(false);

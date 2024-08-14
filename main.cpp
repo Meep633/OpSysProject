@@ -166,10 +166,11 @@ int main(int argc, char **argv) {
     std::cout << std::defaultfloat << "; bound=" << upperBound << std::endl;
     p1(processes, numProcesses, numCPUProcesses, simout);
     simout << "\n";
+    */
     
     std::cout << "\n<<< PROJECT PART II" << std::endl;
     std::cout << "<<< -- t_cs=" << t_cs << "ms; alpha=" << alpha << "; t_slice=" << t_slice << "ms" << std::endl; //MAKE SURE ALPHA HAS 2 NUMS AFTER DECIMAL POINT
-    FCFS(processes, numProcesses, t_cs, simout);*/
+    FCFS(processes, numProcesses, t_cs, simout);
     SJF(processes, numProcesses, t_cs, simout, alpha);
     // RR(processes, numProcesses, t_cs, t_slice, simout);
 
