@@ -2,12 +2,22 @@
 
 struct fcfsPriority {
     bool operator()(Process& a, Process& b) const { //assume first burst is a CPU burst
-        int aTime = a.burst(0).initialArrivalTime();
-        int bTime = b.burst(0).initialArrivalTime();
-        if (aTime == bTime) {
-            return a.name() > b.name();
+        // int aTime = a.burst(0).initialArrivalTime();
+        // int bTime = b.burst(0).initialArrivalTime();
+        // if (aTime == bTime) {
+        //     return a.name() > b.name();
+        // }
+        // return aTime > bTime;
+        if (a.burst(0).initialArrivalTime() != b.burst(0).initialArrivalTime()) { // a/b arrived before b/a
+            return a.burst(0).initialArrivalTime() > b.burst(0).initialArrivalTime();
         }
-        return aTime > bTime;
+        if (a.burst(0).numPreemptions() > 0 || b.burst(0).numPreemptions() > 0) { // a/b was preempted
+            return a.burst(0).numPreemptions() == 0;
+        }
+        if ((a.burst(0).first() && !b.burst(0).first()) || (!a.burst(0).first() && b.burst(0).first())) { // a/b arrived for the first time (not both)
+            return a.burst(0).first();
+        }
+        return a.name() > b.name(); // a/b completed i/o burst or arrived at same time -> alphabetical order
     }
 };
 
@@ -186,6 +196,8 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
     printQueue(readyQueue, timeOfSwitchIn, totalTime);
 
     //print stats
+    simout << std::fixed << std::setprecision(3);
+
     simout << "Algorithm FCFS\n";
     simout << "-- CPU utilization: " << ceil((cpuBurstTimeSum*1000.0*100) / totalTime)/1000.0 << "%\n";
 
