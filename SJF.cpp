@@ -22,7 +22,6 @@ void printQueue(std::priority_queue<Process, std::vector<Process>, sjfPriority> 
             std::cout << " ";
             std::cout << queue.top().name();
         }
-        if (queue.top().contextSwitching()) std::cout << "..";
         queue.pop();
     }
     std::cout << "]" << std::endl;
@@ -204,7 +203,6 @@ void SJF(const std::vector<Process> &processes, int numProcesses, int t_cs, std:
     simout << "-- CPU utilization: " << ceil((cpuBurstTimeSum*1000.0*100) / totalTime)/1000.0 << "%\n";
 
     double avg = 0;
-    // float avg = numCPUBoundCPUBursts ? (ceil((totalTime * 1000.0) / totalNum) / 1000.0):0.f;
     if (numCPUBoundCPUBursts != 0) {
         avg = ceil((cpuBoundWaitTimeSum*1000.0) / numCPUBoundCPUBursts)/1000.0;
     }
