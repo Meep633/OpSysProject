@@ -1,13 +1,7 @@
 #include "algos.h"
 
-struct sjfPriority {
+struct srtPriority {
     bool operator()(Process& a, Process& b) const { //assume first burst is a CPU burst
-        // int aTime = a.tau();
-        // int bTime = b.tau();
-        // if (aTime == bTime) {
-        //     return a.name() > b.name();
-        // }
-        // return aTime > bTime;
         if (a.tau() != b.tau()) { // a/b is predicted to finish before b/a
             return a.tau() > b.tau();
         }
@@ -22,7 +16,7 @@ struct sjfPriority {
 };
 
 
-void printQueue(std::priority_queue<Process, std::vector<Process>, sjfPriority> queue, int timeOfSwitchIn, int totalTime) {
+void printQueue(std::priority_queue<Process, std::vector<Process>, srtPriority> queue, int timeOfSwitchIn, int totalTime) {
     std::cout << "[Q";
     if (queue.empty()) {
         std::cout << " empty";
@@ -42,7 +36,7 @@ void SJF(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
     //readyQueue keeps track of processes waiting to use the CPU
     //ioQueue keeps track of processes executing an I/O burst
     std::priority_queue<Process, std::vector<Process>, arrivalPriority> processQueue(processes.begin(), processes.end());
-    std::priority_queue<Process, std::vector<Process>, sjfPriority> readyQueue;
+    std::priority_queue<Process, std::vector<Process>, srtPriority> readyQueue;
     std::priority_queue<Process, std::vector<Process>, ioPriority> ioQueue;
     
     //variables to keep track of general things
