@@ -9,25 +9,33 @@ public:
         this->_remainingTime = burstTime;
         this->_turnaroundTime = 0;
         this->_waitTime = 0;
-        this->_arrivalTime = 0;
+        this->_initialArrivalTime = 0;
+        this->_latestArrivalTime = 0;
+        this->_numPreemptions = 0;
     }
-    int burstTime() { return this->_burstTime; }
-    bool type() { return this->_type; }
-    int remainingTime() { return this->_remainingTime; }
+    int burstTime() const { return this->_burstTime; }
+    bool type() const { return this->_type; }
+    int remainingTime() const { return this->_remainingTime; }
     void setRemainingTime(int time) { this->_remainingTime = time; }
-    int turnaroundTime() { return this->_turnaroundTime; }
+    int turnaroundTime() const { return this->_turnaroundTime; }
     void setTurnaroundTime(int time) { this->_turnaroundTime = time; }
-    int waitTime() { return this->_waitTime; }
+    int waitTime() const { return this->_waitTime; }
     void setWaitTime(int time) { this->_waitTime = time; }
-    int arrivalTime() { return this->_arrivalTime; }
-    void setArrivalTime(int time) { this->_arrivalTime = time; }
+    int initialArrivalTime() const { return this->_initialArrivalTime; }
+    void setInitialArrivalTime(int time) { this->_initialArrivalTime = time; }
+    int latestArrivalTime() const { return this->_latestArrivalTime; }
+    void setLatestArrivalTime(int time) { this->_latestArrivalTime = time; }
+    int numPreemptions() const { return this->_numPreemptions; }
+    void incrementPreemptions() { this->_numPreemptions++; }
 private:
     int _burstTime;
     bool _type; //true = cpu, false = i/o
     int _remainingTime;
     int _turnaroundTime;
     int _waitTime;
-    int _arrivalTime;
+    int _initialArrivalTime;
+    int _latestArrivalTime; //new arrival time after being preempted
+    int _numPreemptions;
 };
 
 #endif

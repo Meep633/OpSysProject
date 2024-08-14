@@ -69,10 +69,10 @@ void SJF(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
         //check if a cpu burst has completed
         if (cpuInUse) {
             Burst& burst = usingCPU.burst(0);
-            int finishTime = burst.arrivalTime() + burst.waitTime() + t_cs/2 + burst.burstTime();
+            int finishTime = burst.initialArrivalTime() + burst.waitTime() + t_cs/2 + burst.burstTime();
             if (finishTime == totalTime) { //finished current CPU burst
                 //update stats
-                burst.setTurnaroundTime(totalTime - burst.arrivalTime() + t_cs/2); // + t_cs/2 to account for switch out
+                burst.setTurnaroundTime(totalTime - burst.initialArrivalTime() + t_cs/2); // + t_cs/2 to account for switch out
                 cpuBurstTimeSum += burst.burstTime();
                 if (usingCPU.type()) { //cpu-bound process
                     cpuBoundWaitTimeSum += burst.waitTime();
@@ -117,10 +117,10 @@ void SJF(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
                     usingCPU.setTau(tau);
 
 
-                    usingCPU.burst(0).setArrivalTime(totalTime + t_cs/2); //time when i/o burst execution starts
+                    usingCPU.burst(0).setInitialArrivalTime(totalTime + t_cs/2); //time when i/o burst execution starts
                     ioQueue.push(usingCPU);
                     if (totalTime < stopPrintTime) {
-                        int ioTime = usingCPU.burst(0).arrivalTime() + usingCPU.burst(0).burstTime();
+                        int ioTime = usingCPU.burst(0).initialArrivalTime() + usingCPU.burst(0).burstTime();
                         std::cout << "time " << totalTime << "ms: Process " << usingCPU.name() << " switching "
                                     "out of CPU; blocking on I/O until time " << ioTime << "ms ";
                         printQueue(readyQueue, timeOfSwitchIn, totalTime);
@@ -145,9 +145,9 @@ void SJF(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
         if (!ioQueue.empty()) {
             Process p = ioQueue.top();
             Burst burst = p.burst(0);
-            while (!ioQueue.empty() && totalTime - burst.arrivalTime() == burst.burstTime()) { //multiple processes may have finished an i/o burst at the same time
+            while (!ioQueue.empty() && totalTime - burst.initialArrivalTime() == burst.burstTime()) { //multiple processes may have finished an i/o burst at the same time
                 p.removeBurst(0);
-                p.burst(0).setArrivalTime(totalTime); //next cpu burst arrived in ready queue now
+                p.burst(0).setInitialArrivalTime(totalTime); //next cpu burst arrived in ready queue now
                 readyQueue.push(p);
                 if (totalTime < stopPrintTime) {
                     std::cout << "time " << totalTime << "ms: Process " << p.name() << " (tau " << p.tau() << "ms) completed I/O; added "
@@ -185,7 +185,7 @@ void SJF(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
             if (timeOfSwitchIn == 0 || totalTime - timeOfSwitchIn >= t_cs/2) {
                 readyQueue.pop(); 
                 Burst& burst = p.burst(0);
-                burst.setWaitTime(burst.waitTime() + totalTime - burst.arrivalTime()); //add to prev wait time is important for SRT and RR cuz of preemptions
+                burst.setWaitTime(burst.waitTime() + totalTime - burst.initialArrivalTime()); //add to prev wait time is important for SRT and RR cuz of preemptions
                 p.setContextSwitching(true);
                 switchingIn = p;
                 timeOfSwitchIn = totalTime;

@@ -22,8 +22,6 @@ public:
     bool type() const;
     bool contextSwitching() const;
     void setContextSwitching(bool contextSwitching);
-    int numPreemptions() const;
-    void incrementPreemptions();
     int tau() const;
     void setTau(int tau);
     std::ostream& output(std::ostream &out_str); //for testing
@@ -34,7 +32,6 @@ private:
     int _arrivalTime;
     bool _type; //true = cpu-bound, false = i/o-bound
     bool _contextSwitching;
-    int _numPreemptions;
     int _tau;
 };
 

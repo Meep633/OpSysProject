@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
             cpuTime *= 4;
         }
         newProcess.addBurst(cpuTime, true);
-        newProcess.burst(0).setArrivalTime(arrivalTime); //initialize initial arrival time for burst
+        newProcess.burst(0).setInitialArrivalTime(arrivalTime); //initialize initial arrival time for burst
 
         processes.push_back(newProcess);
     }
@@ -174,10 +174,10 @@ int main(int argc, char **argv) {
     std::cout << "<<< -- t_cs=" << t_cs << "ms; alpha=";
     std::cout << std::fixed << std::setprecision(2) << alpha;
     std::cout << "; t_slice=" << t_slice << "ms" << std::endl;
-    FCFS(processes, numProcesses, t_cs, simout);
-    SJF(processes, numProcesses, t_cs, alpha, simout);
+    // FCFS(processes, numProcesses, t_cs, simout);
+    // SJF(processes, numProcesses, t_cs, alpha, simout);
     // SRT(processes, numProcesses, t_cs, alpha, simout);
-    // RR(processes, numProcesses, t_cs, t_slice, simout);
+    RR(processes, numProcesses, t_cs, t_slice, simout);
 
     simout.close();
 

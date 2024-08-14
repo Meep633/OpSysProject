@@ -22,8 +22,8 @@ struct arrivalPriority {
 
 struct ioPriority {
     bool operator()(Process &a, Process &b) const { //assume first burst is an I/O burst
-        int aTime = a.burst(0).arrivalTime() + a.burst(0).burstTime(); //arrivalTime + burstTime = time when I/O burst finishes
-        int bTime = b.burst(0).arrivalTime() + b.burst(0).burstTime();
+        int aTime = a.burst(0).initialArrivalTime() + a.burst(0).burstTime(); //arrivalTime + burstTime = time when I/O burst finishes
+        int bTime = b.burst(0).initialArrivalTime() + b.burst(0).burstTime();
         if (aTime == bTime) {
             return a.name() > b.name();
         }

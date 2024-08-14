@@ -8,7 +8,6 @@ Process::Process() {
     this->_type = true;
     this->_contextSwitching = false;
     this->_tau = 1000;
-    this->_numPreemptions = 0;
 }
 Process::Process(std::string name, int arrivalTime, bool type, double lambda) {
     this->_bursts = std::vector<Burst>();
@@ -18,7 +17,6 @@ Process::Process(std::string name, int arrivalTime, bool type, double lambda) {
     this->_type = type;
     this->_contextSwitching = false;
     this->_tau = 1/lambda;
-    this->_numPreemptions = 0;
 }
 
 void Process::addBurst(int burstTime, bool burstType) {
@@ -56,13 +54,6 @@ bool Process::contextSwitching() const {
 }
 void Process::setContextSwitching(bool contextSwitching) {
     this->_contextSwitching = contextSwitching;
-}
-
-int Process::numPreemptions() const {
-    return this->_numPreemptions;
-}
-void Process::incrementPreemptions() {
-    this->_numPreemptions++;
 }
 
 int Process::tau() const {
