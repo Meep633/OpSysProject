@@ -249,4 +249,5 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
     simout << "-- CPU-bound number of preemptions: 0\n";
     simout << "-- I/O-bound number of preemptions: 0\n";
     simout << "-- overall number of preemptions: 0\n";
+    simout << std::endl;
 }
