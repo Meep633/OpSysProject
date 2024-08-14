@@ -12,3 +12,11 @@ mv simout.txt simout04.txt
 
 # test _5 --- 6pts
 p2.out 20 12 128 0.01 4096 4 0.96 64 > p2output05.txt
+
+
+
+
+./main.out 3 1 32 .001 1024 4 .75 256 > output.txt
+./main.out 8 6 512 .001 1024 6 .9 128 > output.txt
+./main.out 16 2 256 .001 2048 4 .5 32 > output.txt
+./main.out 20 12 128 .01 4096 4 .96 64 > output.txt
