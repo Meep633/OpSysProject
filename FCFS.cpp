@@ -184,7 +184,6 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
 
     std::cout << "time " << totalTime << "ms: Simulator ended for FCFS ";
     printQueue(readyQueue, timeOfSwitchIn, totalTime);
-    std::cout << std::endl;
 
     //print stats
     simout << "Algorithm FCFS\n";
@@ -233,5 +232,4 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
     simout << "-- CPU-bound number of preemptions: 0\n";
     simout << "-- I/O-bound number of preemptions: 0\n";
     simout << "-- overall number of preemptions: 0\n";
-    simout << std::endl;
 }

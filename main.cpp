@@ -10,6 +10,7 @@
 #include "algos.h"
 
 void p1(const std::vector<Process> &processes, int numProcesses, int numCPUProcesses, std::ofstream &simout);
+void p2(const std::vector<Process> &processes, int numProcesses, int t_cs, double alpha, int t_slice, std::ofstream &simout);
 
 int main(int argc, char **argv) {
     //Parse arguments
@@ -148,7 +149,8 @@ int main(int argc, char **argv) {
             cpuTime *= 4;
         }
         newProcess.addBurst(cpuTime, true);
-        newProcess.burst(0).setInitialArrivalTime(arrivalTime); //initialize initial arrival time for burst
+        newProcess.burst(0).setInitialArrivalTime(arrivalTime); //initialize arrival times for first CPU burst
+        newProcess.burst(0).setLatestArrivalTime(arrivalTime);
 
         processes.push_back(newProcess);
     }
@@ -167,17 +169,15 @@ int main(int argc, char **argv) {
     std::cout << std::defaultfloat << "; bound=" << upperBound << std::endl;
     p1(processes, numProcesses, numCPUProcesses, simout);
     
+    std::cout << std::endl;
     simout << "\n";
     */
     
-    std::cout << "\n<<< PROJECT PART II" << std::endl;
+    std::cout << "<<< PROJECT PART II" << std::endl;
     std::cout << "<<< -- t_cs=" << t_cs << "ms; alpha=";
     std::cout << std::fixed << std::setprecision(2) << alpha;
     std::cout << "; t_slice=" << t_slice << "ms" << std::endl;
-    // FCFS(processes, numProcesses, t_cs, simout);
-    // SJF(processes, numProcesses, t_cs, alpha, simout);
-    // SRT(processes, numProcesses, t_cs, alpha, simout);
-    RR(processes, numProcesses, t_cs, t_slice, simout);
+    p2(processes, numProcesses, t_cs, alpha, t_slice, simout);
 
     simout.close();
 
@@ -278,4 +278,17 @@ void p1(const std::vector<Process> &processes, int numProcesses, int numCPUProce
         avg = ceil((cpuBoundIOBurstSum + ioBoundIOBurstSum)*1000 / (cpuBoundTotalIOBursts + ioBoundTotalIOBursts)) / 1000;
     }
     simout << "-- overall average I/O burst time: " << avg << " ms\n";
+}
+
+void p2(const std::vector<Process> &processes, int numProcesses, int t_cs, double alpha, int t_slice, std::ofstream &simout) {
+    // FCFS(processes, numProcesses, t_cs, simout);
+    // std::cout << std::endl;
+    // simout << std::endl;
+    // SJF(processes, numProcesses, t_cs, alpha, simout);
+    // std::cout << std::endl;
+    // simout << std::endl;
+    // SRT(processes, numProcesses, t_cs, alpha, simout);
+    // std::cout << std::endl;
+    // simout << std::endl;
+    RR(processes, numProcesses, t_cs, t_slice, simout);
 }
