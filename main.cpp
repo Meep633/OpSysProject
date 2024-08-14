@@ -282,10 +282,10 @@ void p1(const std::vector<Process> &processes, int numProcesses, int numCPUProce
 }
 
 void p2(const std::vector<Process> &processes, int numProcesses, int t_cs, double alpha, int t_slice, std::ofstream &simout) {
-    FCFS(processes, numProcesses, t_cs, simout);
+    // FCFS(processes, numProcesses, t_cs, simout);
     // std::cout << std::endl;
     // simout << std::endl;
-    // SJF(processes, numProcesses, t_cs, alpha, simout);
+    SJF(processes, numProcesses, t_cs, alpha, simout);
     // std::cout << std::endl;
     // simout << std::endl;
     // SRT(processes, numProcesses, t_cs, alpha, simout);

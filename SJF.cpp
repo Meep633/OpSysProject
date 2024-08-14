@@ -2,12 +2,22 @@
 
 struct sjfPriority {
     bool operator()(Process& a, Process& b) const { //assume first burst is a CPU burst
-        int aTime = a.tau();
-        int bTime = b.tau();
-        if (aTime == bTime) {
-            return a.name() > b.name();
+        // int aTime = a.tau();
+        // int bTime = b.tau();
+        // if (aTime == bTime) {
+        //     return a.name() > b.name();
+        // }
+        // return aTime > bTime;
+        if (a.tau() != b.tau()) { // a/b is predicted to finish before b/a
+            return a.tau() > b.tau();
         }
-        return aTime > bTime;
+        if (a.burst(0).numPreemptions() > 0 || b.burst(0).numPreemptions() > 0) { // a/b was preempted
+            return a.burst(0).numPreemptions() == 0;
+        }
+        if ((a.burst(0).first() && !b.burst(0).first()) || (!a.burst(0).first() && b.burst(0).first())) { // a/b arrived for the first time (not both)
+            return a.burst(0).first();
+        }
+        return a.name() > b.name(); // a/b completed i/o burst or arrived at same time -> alphabetical order
     }
 };
 
@@ -199,6 +209,8 @@ void SJF(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
     printQueue(readyQueue, timeOfSwitchIn, totalTime);
 
     //print stats
+    simout << std::fixed << std::setprecision(3);
+
     simout << "Algorithm SJF\n";
     simout << "-- CPU utilization: " << ceil((cpuBurstTimeSum*1000.0*100) / totalTime)/1000.0 << "%\n";
 
