@@ -25,6 +25,6 @@ struct ioPriority {
 void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std::ofstream &simout);
 void SJF();
 void SRT();
-void RR();
+void RR(const std::vector<Process> &processes, int numProcesses, int t_cs, int t_slice, std::ofstream &simout);
 
 #endif
