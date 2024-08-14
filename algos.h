@@ -11,6 +11,15 @@
 #include "process.h"
 #include "burst.h"
 
+struct arrivalPriority {
+    bool operator()(Process &a, Process &b) const {
+        if (a.arrivalTime() == b.arrivalTime()) {
+            return a.name() > b.name();
+        }
+        return a.arrivalTime() > b.arrivalTime();
+    }
+};
+
 struct ioPriority {
     bool operator()(Process &a, Process &b) const { //assume first burst is an I/O burst
         int aTime = a.burst(0).arrivalTime() + a.burst(0).burstTime(); //arrivalTime + burstTime = time when I/O burst finishes

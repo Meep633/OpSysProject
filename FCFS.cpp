@@ -31,7 +31,7 @@ void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std
     //processQueue keeps track of processes that haven't arrived for the first time yet 
     //readyQueue keeps track of processes waiting to use the CPU
     //ioQueue keeps track of processes executing an I/O burst
-    std::priority_queue<Process, std::vector<Process>, fcfsPriority> processQueue(processes.begin(), processes.end());
+    std::priority_queue<Process, std::vector<Process>, arrivalPriority> processQueue(processes.begin(), processes.end());
     std::priority_queue<Process, std::vector<Process>, fcfsPriority> readyQueue;
     std::priority_queue<Process, std::vector<Process>, ioPriority> ioQueue;
     
