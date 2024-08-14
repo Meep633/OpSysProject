@@ -151,6 +151,7 @@ int main(int argc, char **argv) {
         newProcess.addBurst(cpuTime, true);
         newProcess.burst(0).setInitialArrivalTime(arrivalTime); //initialize arrival times for first CPU burst
         newProcess.burst(0).setLatestArrivalTime(arrivalTime);
+        newProcess.burst(0).setFirst(true);
 
         processes.push_back(newProcess);
     }

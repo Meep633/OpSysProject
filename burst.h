@@ -12,6 +12,7 @@ public:
         this->_initialArrivalTime = 0;
         this->_latestArrivalTime = 0;
         this->_numPreemptions = 0;
+        this->_first = false;
     }
     int burstTime() const { return this->_burstTime; }
     bool type() const { return this->_type; }
@@ -27,6 +28,8 @@ public:
     void setLatestArrivalTime(int time) { this->_latestArrivalTime = time; }
     int numPreemptions() const { return this->_numPreemptions; }
     void incrementPreemptions() { this->_numPreemptions++; }
+    bool first() const { return this->_first; }
+    void setFirst(bool first) { this->_first = first; }
 private:
     int _burstTime;
     bool _type; //true = cpu, false = i/o
@@ -36,6 +39,7 @@ private:
     int _initialArrivalTime;
     int _latestArrivalTime; //new arrival time after being preempted
     int _numPreemptions;
+    bool _first; //true if first burst in process vector, false otherwise
 };
 
 #endif

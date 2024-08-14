@@ -2,14 +2,26 @@
 
 struct rrPriority {
     bool operator()(Process& a, Process& b) const { //assume first burst is a CPU burst
-        int aTime = a.burst(0).latestArrivalTime();
-        int bTime = b.burst(0).latestArrivalTime();
-        if (aTime == bTime) {
-            return a.name() > b.name();
+        if (a.burst(0).latestArrivalTime() != b.burst(0).latestArrivalTime()) { // a/b arrived before b/a
+            return a.burst(0).latestArrivalTime() > b.burst(0).latestArrivalTime();
         }
-        return aTime > bTime;
+        if (a.burst(0).numPreemptions() > 0 || b.burst(0).numPreemptions() > 0) { // a/b was preempted
+            return a.burst(0).numPreemptions() == 0;
+        }
+        if (a.burst(0).first() || b.burst(0).first()) { // a/b arrived for the first time
+            return a.burst(0).first();
+        }
+        return a.name() > b.name(); // a/b completed i/o burst or arrived at same time -> alphabetical order
     }
-};
+}; 
+/*
+process A,B,C enter ready queue at same time
+- A got preempted
+- B finished its I/O burst
+- C arrived for the first time
+
+A priority > B priority > C priority
+*/
 
 
 void printQueue(std::priority_queue<Process, std::vector<Process>, rrPriority> queue, int timeOfSwitchIn, int totalTime) {
