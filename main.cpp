@@ -155,7 +155,8 @@ int main(int argc, char **argv) {
 
     std::ofstream simout("simout.txt");
 
-    /*std::cout << "<<< PROJECT PART I" << std::endl;
+    /*
+    std::cout << "<<< PROJECT PART I" << std::endl;
     std::cout << "<<< -- process set (n=" << numProcesses << ") with " << numCPUProcesses << " CPU-bound process";
     if (numCPUProcesses != 1) {
         std::cout << "es";
@@ -165,13 +166,17 @@ int main(int argc, char **argv) {
     std::cout << std::fixed << lambda;
     std::cout << std::defaultfloat << "; bound=" << upperBound << std::endl;
     p1(processes, numProcesses, numCPUProcesses, simout);
+    
     simout << "\n";
     */
     
     std::cout << "\n<<< PROJECT PART II" << std::endl;
-    std::cout << "<<< -- t_cs=" << t_cs << "ms; alpha=" << alpha << "; t_slice=" << t_slice << "ms" << std::endl; //MAKE SURE ALPHA HAS 2 NUMS AFTER DECIMAL POINT
+    std::cout << "<<< -- t_cs=" << t_cs << "ms; alpha=";
+    std::cout << std::fixed << std::setprecision(2) << alpha;
+    std::cout << "; t_slice=" << t_slice << "ms" << std::endl;
     FCFS(processes, numProcesses, t_cs, simout);
-    SJF(processes, numProcesses, t_cs, simout, alpha);
+    SJF(processes, numProcesses, t_cs, alpha, simout);
+    // SRT(processes, numProcesses, t_cs, alpha, simout);
     // RR(processes, numProcesses, t_cs, t_slice, simout);
 
     simout.close();

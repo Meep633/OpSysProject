@@ -27,7 +27,7 @@ void printQueue(std::priority_queue<Process, std::vector<Process>, sjfPriority> 
     std::cout << "]" << std::endl;
 }
 
-void SJF(const std::vector<Process> &processes, int numProcesses, int t_cs, std::ofstream &simout, double alpha) {
+void SJF(const std::vector<Process> &processes, int numProcesses, int t_cs, double alpha, std::ofstream &simout) {
     //processQueue keeps track of processes that haven't arrived for the first time yet 
     //readyQueue keeps track of processes waiting to use the CPU
     //ioQueue keeps track of processes executing an I/O burst
