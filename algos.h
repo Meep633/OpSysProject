@@ -11,6 +11,15 @@
 #include "process.h"
 #include "burst.h"
 
+struct arrivalPriority {
+    bool operator()(Process &a, Process &b) const {
+        if (a.arrivalTime() == b.arrivalTime()) {
+            return a.name() > b.name();
+        }
+        return a.arrivalTime() > b.arrivalTime();
+    }
+};
+
 struct ioPriority {
     bool operator()(Process &a, Process &b) const { //assume first burst is an I/O burst
         int aTime = a.burst(0).arrivalTime() + a.burst(0).burstTime(); //arrivalTime + burstTime = time when I/O burst finishes
@@ -23,7 +32,7 @@ struct ioPriority {
 };
 
 void FCFS(const std::vector<Process> &processes, int numProcesses, int t_cs, std::ofstream &simout);
-void SJF();
+void SJF(const std::vector<Process> &processes, int numProcesses, int t_cs, std::ofstream &simout, double alpha);
 void SRT();
 void RR(const std::vector<Process> &processes, int numProcesses, int t_cs, int t_slice, std::ofstream &simout);
 
