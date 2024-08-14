@@ -9,14 +9,14 @@ Process::Process() {
     this->_contextSwitching = false;
     this->_tau = 1000;
 }
-Process::Process(std::string name, int arrivalTime, bool type) {
+Process::Process(std::string name, int arrivalTime, bool type, double lambda) {
     this->_bursts = std::vector<Burst>();
     this->_numCPUBursts = 0;
     this->_name = name;
     this->_arrivalTime = arrivalTime;
     this->_type = type;
     this->_contextSwitching = false;
-    this->_tau = 1000;
+    this->_tau = 1/lambda;
 }
 
 void Process::addBurst(int burstTime, bool burstType) {

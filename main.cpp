@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
             type = false;
         }
 
-        Process newProcess = Process(name, arrivalTime, type);
+        Process newProcess = Process(name, arrivalTime, type, lambda);
         
         int numCPUBursts = ceil(drand48() * 32);
         for (int j = 1; j < numCPUBursts; j++) {

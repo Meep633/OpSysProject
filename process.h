@@ -11,7 +11,7 @@
 class Process {
 public:
     Process();
-    Process(std::string name, int arrivalTime, bool type);
+    Process(std::string name, int arrivalTime, bool type, double lambda);
     void addBurst(int burstTime, bool burstType); //true = cpu burst, false = i/o burst
     void removeBurst(unsigned int ind);
     Burst& burst(unsigned int ind);
