@@ -25,6 +25,7 @@ public:
     int tau() const;
     void setTau(int tau);
     std::ostream& output(std::ostream &out_str); //for testing
+    int getPredictedRemainingTime() const;
 private:
     std::vector<Burst> _bursts;
     int _numCPUBursts;

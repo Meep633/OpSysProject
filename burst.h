@@ -30,6 +30,9 @@ public:
     void incrementPreemptions() { this->_numPreemptions++; }
     bool first() const { return this->_first; }
     void setFirst(bool first) { this->_first = first; }
+    int timeElapsed() const {
+        return this->_burstTime - this->_remainingTime;
+    }
 private:
     int _burstTime;
     bool _type; //true = cpu, false = i/o

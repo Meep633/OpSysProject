@@ -2,8 +2,8 @@
 
 struct srtPriority { //might not need to change anything in the operator
     bool operator()(Process& a, Process& b) const { //assume first burst is a CPU burst
-        if (a.tau() != b.tau()) { // a/b is predicted to finish before b/a
-            return a.tau() > b.tau();
+        if (a.getPredictedRemainingTime() != b.getPredictedRemainingTime()) { // a/b is predicted to finish before b/a
+            return a.getPredictedRemainingTime() > b.getPredictedRemainingTime();
         }
         if (a.burst(0).numPreemptions() > 0 || b.burst(0).numPreemptions() > 0) { // a/b was preempted
             return a.burst(0).numPreemptions() == 0;

@@ -63,6 +63,10 @@ void Process::setTau(int tau) {
     this->_tau = tau;
 }
 
+int Process::getPredictedRemainingTime() const {
+    return tau() - this->_bursts[0].timeElapsed();
+}
+
 std::ostream& Process::output(std::ostream &out_str) {
     out_str << this->_name << ": ";
     if (this->_type) {
