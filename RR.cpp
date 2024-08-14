@@ -8,7 +8,8 @@ struct rrPriority {
         if (a.burst(0).numPreemptions() > 0 || b.burst(0).numPreemptions() > 0) { // a/b was preempted
             return a.burst(0).numPreemptions() == 0;
         }
-        if (a.burst(0).first() || b.burst(0).first()) { // a/b arrived for the first time
+        // if (a.burst(0).first() || b.burst(0).first()) { // a/b arrived for the first time (not both)
+        if ((a.burst(0).first() && !b.burst(0).first()) || (!a.burst(0).first() && b.burst(0).first())) {
             return a.burst(0).first();
         }
         return a.name() > b.name(); // a/b completed i/o burst or arrived at same time -> alphabetical order
@@ -34,7 +35,7 @@ void printQueue(std::priority_queue<Process, std::vector<Process>, rrPriority> q
             std::cout << " ";
             std::cout << queue.top().name();
             // Process p = queue.top();
-            // std::cout << " " << p.burst(0).latestArrivalTime();
+            // std::cout << "-" << p.burst(0).numPreemptions() << "_" << p.burst(0).first();
         }
         queue.pop();
     }
@@ -169,9 +170,10 @@ void RR(const std::vector<Process> &processes, int numProcesses, int t_cs, int t
                     // return;
 
                     //start switch out
-                    usingCPU.setContextSwitching(true);
+                    usingCPU.setContextSwitching(true); //causes problem cuz contextSwitching never gets set back to false
                     timeOfSwitchOut = totalTime;
                 } else if (totalTime - timeOfSwitchOut == t_cs/2) { //switch out finished
+                    usingCPU.setContextSwitching(false);
                     cpuInUse = false;
                     readyQueue.push(usingCPU); //should be pushing in at totalTime + t_cs/2
                 }
