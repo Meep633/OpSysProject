@@ -58,6 +58,8 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
     int numIOBoundCPUBursts = 0;
     int numCPUBoundContextSwitches = 0;
     int numIOBoundContextSwitches = 0;
+    int numCPUBoundPreemptions = 0;
+    int numIOBoundPreemptions = 0;
 
     int stopPrintTime = 10000;
 #ifdef DEBUG
@@ -66,14 +68,14 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
 
     //maybe change bursts vector to a list to make removing head more efficient
 
-    std::cout << "time 0ms: Simulator started for SJF ";
+    std::cout << "time 0ms: Simulator started for SRT ";
     printQueue(readyQueue, timeOfSwitchIn, totalTime);
 
     while (!(terminatedProcesses == numProcesses && totalTime - timeOfSwitchOut == t_cs/2)) { //sim ends when all processes terminated and last process switched out
         //check if a cpu burst has completed
         if (cpuInUse) {
             Burst& burst = usingCPU.burst(0);
-            int finishTime = burst.initialArrivalTime() + burst.waitTime() + t_cs/2 + burst.burstTime();
+            int finishTime = burst.initialArrivalTime() + burst.waitTime() + burst.burstTime() + burst.numPreemptions()*t_cs + t_cs/2; //update to calculate using preemptions
             if (finishTime == totalTime) { //finished current CPU burst
                 //update stats
                 burst.setTurnaroundTime(totalTime - burst.initialArrivalTime() + t_cs/2); // + t_cs/2 to account for switch out
@@ -83,11 +85,13 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
                     cpuBoundTurnaroundTimeSum += burst.turnaroundTime();
                     numCPUBoundCPUBursts++;
                     numCPUBoundContextSwitches++;
+                    numCPUBoundPreemptions += burst.numPreemptions();
                 } else { //i/o-bound process
                     ioBoundWaitTimeSum += burst.waitTime();
                     ioBoundTurnaroundTimeSum += burst.turnaroundTime();
                     numIOBoundCPUBursts++;
                     numIOBoundContextSwitches++;
+                    numIOBoundPreemptions += burst.numPreemptions();
                 }
 
                 int burstTime = burst.burstTime();
@@ -131,6 +135,40 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
                     }
                 }
             }
+            // else if (totalTime - (timeOfSwitchIn + t_cs/2) >= t_slice) { //didnt finish within timeslice -> preempt (timeOfSwitchIn + t_cs/2 = start time of burst execution)
+            //     if (!usingCPU.contextSwitching() && readyQueue.empty()) { //dont need to switch out
+            //         burst.setRemainingTime(burst.remainingTime() - t_slice);
+            //         timeOfSwitchIn = totalTime - t_cs/2;
+            //         if (totalTime < stopPrintTime) {
+            //             std::cout << "time " << totalTime << "ms: Time slice expired; no preemption because ready queue is empty ";
+            //             printQueue(readyQueue, timeOfSwitchIn, totalTime);
+            //         }
+            //     } else if (!usingCPU.contextSwitching()) { //begin switch out
+            //         //update times and stats
+            //         burst.setLatestArrivalTime(totalTime + t_cs/2);
+            //         burst.setRemainingTime(burst.remainingTime() - t_slice);
+            //         burst.incrementPreemptions();
+            //         if (usingCPU.type()) {
+            //             numCPUBoundContextSwitches++;
+            //         } else {
+            //             numIOBoundContextSwitches++;
+            //         }
+                    
+            //         if (totalTime < stopPrintTime) {
+            //             std::cout << "time " << totalTime << "ms: Time slice expired; preempting process " 
+            //                         "" << usingCPU.name() << " with " << burst.remainingTime() << "ms remaining ";
+            //             printQueue(readyQueue, timeOfSwitchIn, totalTime);
+            //         }
+
+            //         //start switch out
+            //         usingCPU.setContextSwitching(true); //causes problem cuz contextSwitching never gets set back to false
+            //         timeOfSwitchOut = totalTime;
+            //     } else if (totalTime - timeOfSwitchOut == t_cs/2) { //switch out finished
+            //         usingCPU.setContextSwitching(false);
+            //         cpuInUse = false;
+            //         readyQueue.push(usingCPU); //should be pushing in at totalTime + t_cs/2
+            //     }
+            // }
         }
 
         //check if a process can start using the cpu to execute a cpu burst (no process can be executing burst and context switch must finish first)
@@ -138,9 +176,14 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
             usingCPU = switchingIn;
             usingCPU.setContextSwitching(false);
             cpuInUse = true;
-            if (totalTime < stopPrintTime) {
+            if (totalTime < stopPrintTime && usingCPU.burst(0).numPreemptions() == 0) { //wasnt preempted before
                 std::cout << "time " << totalTime << "ms: Process " << usingCPU.name() << " (tau " << usingCPU.tau() << "ms) started using the "
                             "CPU for " << usingCPU.burst(0).burstTime() << "ms burst ";
+                printQueue(readyQueue, timeOfSwitchIn, totalTime);
+            } else if (totalTime < stopPrintTime) { //was preempted before
+                std::cout << "time " << totalTime << "ms: Process " << usingCPU.name() << " started using the "
+                            "CPU for remaining " << usingCPU.burst(0).remainingTime() << "ms "
+                            "of " << usingCPU.burst(0).burstTime() << "ms burst ";
                 printQueue(readyQueue, timeOfSwitchIn, totalTime);
             }
         }
@@ -152,6 +195,7 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
             while (!ioQueue.empty() && totalTime - burst.initialArrivalTime() == burst.burstTime()) { //multiple processes may have finished an i/o burst at the same time
                 p.removeBurst(0);
                 p.burst(0).setInitialArrivalTime(totalTime); //next cpu burst arrived in ready queue now
+                p.burst(0).setLatestArrivalTime(totalTime);
                 readyQueue.push(p);
                 if (totalTime < stopPrintTime) {
                     std::cout << "time " << totalTime << "ms: Process " << p.name() << " (tau " << p.tau() << "ms) completed I/O; added "
@@ -189,7 +233,7 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
             if (timeOfSwitchIn == 0 || totalTime - timeOfSwitchIn >= t_cs/2) {
                 readyQueue.pop(); 
                 Burst& burst = p.burst(0);
-                burst.setWaitTime(burst.waitTime() + totalTime - burst.initialArrivalTime()); //add to prev wait time is important for SRT and RR cuz of preemptions
+                burst.setWaitTime(burst.waitTime() + totalTime - burst.latestArrivalTime()); //add to prev wait time is important for SRT and RR cuz of preemptions
                 p.setContextSwitching(true);
                 switchingIn = p;
                 timeOfSwitchIn = totalTime;
@@ -199,13 +243,13 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
         totalTime++;
     }
 
-    std::cout << "time " << totalTime << "ms: Simulator ended for SJF ";
+    std::cout << "time " << totalTime << "ms: Simulator ended for SRT ";
     printQueue(readyQueue, timeOfSwitchIn, totalTime);
 
     //print stats
     simout << std::fixed << std::setprecision(3);
 
-    simout << "Algorithm SJF\n";
+    simout << "Algorithm SRT\n";
     simout << "-- CPU utilization: " << ceil((cpuBurstTimeSum*1000.0*100) / totalTime)/1000.0 << "%\n";
 
     double avg = 0;
@@ -247,7 +291,7 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
     simout << "-- CPU-bound number of context switches: " << numCPUBoundContextSwitches << "\n";
     simout << "-- I/O-bound number of context switches: " << numIOBoundContextSwitches << "\n";
     simout << "-- overall number of context switches: " << numCPUBoundContextSwitches + numIOBoundContextSwitches << "\n";
-    simout << "-- CPU-bound number of preemptions: 0\n";
-    simout << "-- I/O-bound number of preemptions: 0\n";
-    simout << "-- overall number of preemptions: 0\n";
+    simout << "-- CPU-bound number of preemptions: " << numCPUBoundPreemptions << "\n";
+    simout << "-- I/O-bound number of preemptions: " << numIOBoundPreemptions << "\n";
+    simout << "-- overall number of preemptions: " << numCPUBoundPreemptions + numIOBoundPreemptions << "\n";
 }
