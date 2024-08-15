@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
 
     std::ofstream simout("simout.txt");
 
-    /*
+    
     std::cout << "<<< PROJECT PART I" << std::endl;
     std::cout << "<<< -- process set (n=" << numProcesses << ") with " << numCPUProcesses << " CPU-bound process";
     if (numCPUProcesses != 1) {
@@ -172,7 +172,7 @@ int main(int argc, char **argv) {
     
     std::cout << std::endl;
     simout << "\n";
-    */
+    
     
     std::cout << "<<< PROJECT PART II" << std::endl;
     std::cout << "<<< -- t_cs=" << t_cs << "ms; alpha=";
