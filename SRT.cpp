@@ -15,6 +15,20 @@ struct srtPriority { //might not need to change anything in the operator
     }
 };
 
+struct ioSrtPriority {
+    bool operator()(Process &a, Process &b) const { //assume first burst is an I/O burst
+        int aTime = a.burst(0).initialArrivalTime() + a.burst(0).burstTime(); //arrivalTime + burstTime = time when I/O burst finishes
+        int bTime = b.burst(0).initialArrivalTime() + b.burst(0).burstTime();
+        if (aTime == bTime) {//If times are equal, do the SRT priority comparison
+            if (a.getPredictedRemainingTime() != b.getPredictedRemainingTime()) {
+                return a.getPredictedRemainingTime() > b.getPredictedRemainingTime();
+            }
+            return a.name() > b.name();
+        }
+        return aTime > bTime;
+    }
+};
+
 
 void printQueue(std::priority_queue<Process, std::vector<Process>, srtPriority> queue, int timeOfSwitchIn, int totalTime) {
     std::cout << "[Q";
@@ -37,7 +51,7 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
     //ioQueue keeps track of processes executing an I/O burst
     std::priority_queue<Process, std::vector<Process>, arrivalPriority> processQueue(processes.begin(), processes.end());
     std::priority_queue<Process, std::vector<Process>, srtPriority> readyQueue;
-    std::priority_queue<Process, std::vector<Process>, ioPriority> ioQueue;
+    std::priority_queue<Process, std::vector<Process>, ioSrtPriority> ioQueue;
     
     //variables to keep track of general things
     int totalTime = 0;
@@ -47,6 +61,8 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
     int timeOfSwitchOut = 0;
     int timeOfSwitchIn = 0;
     Process switchingIn;
+
+    bool preempting = false;
 
     //stats
     int cpuBurstTimeSum = 0;
@@ -76,8 +92,6 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
         if (cpuInUse) {
             Burst& burst = usingCPU.burst(0);
             int finishTime = burst.initialArrivalTime() + burst.waitTime() + burst.burstTime() + burst.numPreemptions()*t_cs + t_cs/2; //update to calculate using preemptions
-            int remainingTime = burst.latestArrivalTime() + burst.remainingTime() - totalTime;//Up to date remaining time
-            int predictedRemainingTime = burst.latestArrivalTime() + (usingCPU.tau() - burst.timeElapsed()) - totalTime;
             if (finishTime == totalTime) { //finished current CPU burst
                 //update stats
                 burst.setTurnaroundTime(totalTime - burst.initialArrivalTime() + t_cs/2); // + t_cs/2 to account for switch out
@@ -137,56 +151,59 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
                     }
                 }
             }
-            else if (!readyQueue.empty() && readyQueue.top().getPredictedRemainingTime() < predictedRemainingTime) { //predicted remaining time in ready queue is less than current predicted remaining time
-                if (!usingCPU.contextSwitching() && readyQueue.empty()) { //dont need to switch out
-                    burst.setRemainingTime(remainingTime);
-                    timeOfSwitchIn = totalTime - t_cs/2;
-                    if (totalTime < stopPrintTime) {
-                        std::cout << "time " << totalTime << "ms: Time slice expired; no preemption because ready queue is empty ";
-                        printQueue(readyQueue, timeOfSwitchIn, totalTime);
-                    }
-                } else if (!usingCPU.contextSwitching()) { //begin switch out
-                    //update times and stats
-                    burst.setLatestArrivalTime(totalTime + t_cs/2);
-                    burst.setRemainingTime(remainingTime);
-                    burst.incrementPreemptions();
-                    if (usingCPU.type()) {
-                        numCPUBoundContextSwitches++;
-                    } else {
-                        numIOBoundContextSwitches++;
-                    }
-                    
-                    if (totalTime < stopPrintTime) {
-                        std::cout << "time " << totalTime << "ms: Time slice expired; preempting process " 
-                                    "" << usingCPU.name() << " with " << burst.remainingTime() << "ms remaining ";
-                        printQueue(readyQueue, timeOfSwitchIn, totalTime);
-                    }
-
-                    //start switch out
-                    usingCPU.setContextSwitching(true); //causes problem cuz contextSwitching never gets set back to false
-                    timeOfSwitchOut = totalTime;
-                } else if (totalTime - timeOfSwitchOut == t_cs/2) { //switch out finished
-                    usingCPU.setContextSwitching(false);
-                    cpuInUse = false;
-                    readyQueue.push(usingCPU); //should be pushing in at totalTime + t_cs/2
-                }
+            else if (totalTime - timeOfSwitchOut == t_cs/2) {
+                usingCPU.setContextSwitching(false);
+                cpuInUse = false;
+                readyQueue.push(usingCPU); //should be pushing in at totalTime + t_cs/2
             }
         }
 
         //check if a process can start using the cpu to execute a cpu burst (no process can be executing burst and context switch must finish first)
         if (!cpuInUse && (timeOfSwitchOut == 0 || totalTime - timeOfSwitchOut >= t_cs/2) && totalTime - timeOfSwitchIn == t_cs/2 && switchingIn.contextSwitching()) {
+            preempting = false;
             usingCPU = switchingIn;
             usingCPU.setContextSwitching(false);
             cpuInUse = true;
-            if (totalTime < stopPrintTime && usingCPU.burst(0).numPreemptions() == 0) { //wasnt preempted before
+            usingCPU.burst(0).setEnteredCPUTime(totalTime);
+            if (totalTime < stopPrintTime && (usingCPU.burst(0).numPreemptions() == 0 || usingCPU.burst(0).burstTime() == usingCPU.burst(0).remainingTime())) { //wasnt preempted before
                 std::cout << "time " << totalTime << "ms: Process " << usingCPU.name() << " (tau " << usingCPU.tau() << "ms) started using the "
                             "CPU for " << usingCPU.burst(0).burstTime() << "ms burst ";
                 printQueue(readyQueue, timeOfSwitchIn, totalTime);
             } else if (totalTime < stopPrintTime) { //was preempted before
-                std::cout << "time " << totalTime << "ms: Process " << usingCPU.name() << " started using the "
+                std::cout << "time " << totalTime << "ms: Process " << usingCPU.name() << " (tau " << usingCPU.tau() << "ms) started using the "
                             "CPU for remaining " << usingCPU.burst(0).remainingTime() << "ms "
                             "of " << usingCPU.burst(0).burstTime() << "ms burst ";
                 printQueue(readyQueue, timeOfSwitchIn, totalTime);
+            }
+        }
+
+        if (cpuInUse && !preempting && !usingCPU.contextSwitching() && !readyQueue.empty()) { 
+            Burst& burst = usingCPU.burst(0);
+            int timeSinceEnteredCPU = totalTime - burst.enteredCPUTime();
+            int remainingTime = burst.remainingTime() - timeSinceEnteredCPU;
+            int predictedRemainingTime = (usingCPU.tau() - burst.timeElapsed()) - timeSinceEnteredCPU;
+            Process readyProcess = readyQueue.top();
+            if (readyProcess.getPredictedRemainingTime() < predictedRemainingTime) {//preempt from ready queue
+                preempting = true;
+                //update times and stats
+                burst.setLatestArrivalTime(totalTime + t_cs/2);
+                burst.setRemainingTime(remainingTime);
+                burst.incrementPreemptions();
+                if (usingCPU.type()) {
+                    numCPUBoundContextSwitches++;
+                } else {
+                    numIOBoundContextSwitches++;
+                }
+                
+                if (totalTime < stopPrintTime) {
+                    std::cout << "time " << totalTime << "ms: Process " << readyProcess.name() 
+                        << " (tau " << readyProcess.tau() << "ms) will preempt " << usingCPU.name() << " ";
+                    printQueue(readyQueue, timeOfSwitchIn, totalTime);
+                }
+
+                //start switch out
+                usingCPU.setContextSwitching(true); //causes problem cuz contextSwitching never gets set back to false
+                timeOfSwitchOut = totalTime;
             }
         }
 
@@ -198,12 +215,60 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
                 p.removeBurst(0);
                 p.burst(0).setInitialArrivalTime(totalTime); //next cpu burst arrived in ready queue now
                 p.burst(0).setLatestArrivalTime(totalTime);
-                readyQueue.push(p);
-                if (totalTime < stopPrintTime) {
-                    std::cout << "time " << totalTime << "ms: Process " << p.name() << " (tau " << p.tau() << "ms) completed I/O; added "
-                                "to ready queue ";
-                    printQueue(readyQueue, timeOfSwitchIn, totalTime);
+
+                bool preempted = false;
+
+                if (!preempting && cpuInUse && !usingCPU.contextSwitching()) { //cpu is in use and not context switching
+                    Burst& cpuBurst = usingCPU.burst(0);
+                    int timeSinceEnteredCPU = totalTime - cpuBurst.enteredCPUTime();
+                    int remainingTime = cpuBurst.remainingTime() - timeSinceEnteredCPU;
+                    int predictedRemainingTime = (usingCPU.tau() - cpuBurst.timeElapsed()) - timeSinceEnteredCPU;
+                    // std::cout << "TEST" << p.getPredictedRemainingTime() << " | " << p.tau() << " | " << predictedRemainingTime << " | " << usingCPU.tau() << std::endl;
+                    // std::cout << "CPU Latest Arrival Time" << cpuBurst.latestArrivalTime() << " | CPU Remaining Time" << cpuBurst.remainingTime() << " | Total Time" << totalTime << std::endl;
+                    if (p.getPredictedRemainingTime() < predictedRemainingTime) {//Start preemption
+                        preempted = true;//this stops the "added to ready queue" print
+                        preempting = true;
+
+                        //update times and stats
+                        cpuBurst.setLatestArrivalTime(totalTime + t_cs/2);
+                        cpuBurst.setRemainingTime(remainingTime);
+                        cpuBurst.incrementPreemptions();
+                        if (usingCPU.type()) {
+                            numCPUBoundContextSwitches++;
+                        } else {
+                            numIOBoundContextSwitches++;
+                        }
+                        
+                        readyQueue.push(p);//Add io process to ready queue, later it will become the cpu process
+                        if (totalTime < stopPrintTime) {
+                            std::cout << "time " << totalTime << "ms: Process " << p.name() << " (tau " << p.tau() << "ms) completed I/O; preempting "
+                                        << usingCPU.name() << " (predicted remaining time " << predictedRemainingTime << "ms) ";
+                            printQueue(readyQueue, timeOfSwitchIn, totalTime);
+                        }
+
+                        //start switch out
+                        usingCPU.setContextSwitching(true); //causes problem cuz contextSwitching never gets set back to false
+                        timeOfSwitchOut = totalTime;
+
+                        //Top of IO queue is now the process that will be switched in
+                        // Burst& burst = p.burst(0);
+                        // burst.setWaitTime(burst.waitTime() + totalTime - burst.latestArrivalTime() + (t_cs/2)); //add to prev wait time is important for SRT and RR cuz of preemptions
+                        // p.setContextSwitching(true);
+                        // switchingIn = p;
+                        // timeOfSwitchIn = totalTime + (t_cs/2);
+                    }
+                    
                 }
+
+                if (!preempted) {
+                    readyQueue.push(p);
+                    if (totalTime < stopPrintTime) {
+                        std::cout << "time " << totalTime << "ms: Process " << p.name() << " (tau " << p.tau() << "ms) completed I/O; added "
+                                    "to ready queue ";
+                        printQueue(readyQueue, timeOfSwitchIn, totalTime);
+                    }
+                }
+                
                 ioQueue.pop();
                 if (!ioQueue.empty()) {
                     p = ioQueue.top();
