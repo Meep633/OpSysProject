@@ -208,11 +208,11 @@ void p1(const std::vector<Process> &processes, int numProcesses, int numCPUProce
         if (p.numBursts()/2 + 1 > 1) {
             std::cout << "s";
         }
-        std::cout << ":" << std::endl;
+        // std::cout << ":" << std::endl;
         for (unsigned int j = 0; j < p.numBursts(); j++) {
-            std::cout << "==> ";
+            // std::cout << "==> ";
             if (p.burst(j).type()) {
-                std::cout << "CPU burst " << p.burst(j).burstTime() << "ms";
+                // std::cout << "CPU burst " << p.burst(j).burstTime() << "ms";
                 if (j != p.numBursts()-1) {
                     std::cout << " ";
                 }
@@ -224,7 +224,7 @@ void p1(const std::vector<Process> &processes, int numProcesses, int numCPUProce
                     ioBoundTotalCPUBursts++;
                 }
             } else {
-                std::cout << "I/O burst " << p.burst(j).burstTime() << "ms" << std::endl;
+                // std::cout << "I/O burst " << p.burst(j).burstTime() << "ms" << std::endl;
                 if ((int)i < numCPUProcesses) {
                     cpuBoundIOBurstSum += p.burst(j).burstTime();
                     cpuBoundTotalIOBursts++;
