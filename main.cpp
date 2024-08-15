@@ -214,7 +214,7 @@ void p1(const std::vector<Process> &processes, int numProcesses, int numCPUProce
             if (p.burst(j).type()) {
                 // std::cout << "CPU burst " << p.burst(j).burstTime() << "ms";
                 if (j != p.numBursts()-1) {
-                    std::cout << " ";
+                    // std::cout << " ";
                 }
                 if ((int)i < numCPUProcesses) {
                     cpuBoundCPUBurstSum += p.burst(j).burstTime();
