@@ -76,6 +76,8 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
         if (cpuInUse) {
             Burst& burst = usingCPU.burst(0);
             int finishTime = burst.initialArrivalTime() + burst.waitTime() + burst.burstTime() + burst.numPreemptions()*t_cs + t_cs/2; //update to calculate using preemptions
+            int remainingTime = burst.latestArrivalTime() + burst.remainingTime() - totalTime;//Up to date remaining time
+            int predictedRemainingTime = burst.latestArrivalTime() + (usingCPU.tau() - burst.timeElapsed()) - totalTime;
             if (finishTime == totalTime) { //finished current CPU burst
                 //update stats
                 burst.setTurnaroundTime(totalTime - burst.initialArrivalTime() + t_cs/2); // + t_cs/2 to account for switch out
@@ -135,40 +137,40 @@ void SRT(const std::vector<Process> &processes, int numProcesses, int t_cs, doub
                     }
                 }
             }
-            // else if (totalTime - (timeOfSwitchIn + t_cs/2) >= t_slice) { //didnt finish within timeslice -> preempt (timeOfSwitchIn + t_cs/2 = start time of burst execution)
-            //     if (!usingCPU.contextSwitching() && readyQueue.empty()) { //dont need to switch out
-            //         burst.setRemainingTime(burst.remainingTime() - t_slice);
-            //         timeOfSwitchIn = totalTime - t_cs/2;
-            //         if (totalTime < stopPrintTime) {
-            //             std::cout << "time " << totalTime << "ms: Time slice expired; no preemption because ready queue is empty ";
-            //             printQueue(readyQueue, timeOfSwitchIn, totalTime);
-            //         }
-            //     } else if (!usingCPU.contextSwitching()) { //begin switch out
-            //         //update times and stats
-            //         burst.setLatestArrivalTime(totalTime + t_cs/2);
-            //         burst.setRemainingTime(burst.remainingTime() - t_slice);
-            //         burst.incrementPreemptions();
-            //         if (usingCPU.type()) {
-            //             numCPUBoundContextSwitches++;
-            //         } else {
-            //             numIOBoundContextSwitches++;
-            //         }
+            else if (!readyQueue.empty() && readyQueue.top().getPredictedRemainingTime() < predictedRemainingTime) { //predicted remaining time in ready queue is less than current predicted remaining time
+                if (!usingCPU.contextSwitching() && readyQueue.empty()) { //dont need to switch out
+                    burst.setRemainingTime(remainingTime);
+                    timeOfSwitchIn = totalTime - t_cs/2;
+                    if (totalTime < stopPrintTime) {
+                        std::cout << "time " << totalTime << "ms: Time slice expired; no preemption because ready queue is empty ";
+                        printQueue(readyQueue, timeOfSwitchIn, totalTime);
+                    }
+                } else if (!usingCPU.contextSwitching()) { //begin switch out
+                    //update times and stats
+                    burst.setLatestArrivalTime(totalTime + t_cs/2);
+                    burst.setRemainingTime(remainingTime);
+                    burst.incrementPreemptions();
+                    if (usingCPU.type()) {
+                        numCPUBoundContextSwitches++;
+                    } else {
+                        numIOBoundContextSwitches++;
+                    }
                     
-            //         if (totalTime < stopPrintTime) {
-            //             std::cout << "time " << totalTime << "ms: Time slice expired; preempting process " 
-            //                         "" << usingCPU.name() << " with " << burst.remainingTime() << "ms remaining ";
-            //             printQueue(readyQueue, timeOfSwitchIn, totalTime);
-            //         }
+                    if (totalTime < stopPrintTime) {
+                        std::cout << "time " << totalTime << "ms: Time slice expired; preempting process " 
+                                    "" << usingCPU.name() << " with " << burst.remainingTime() << "ms remaining ";
+                        printQueue(readyQueue, timeOfSwitchIn, totalTime);
+                    }
 
-            //         //start switch out
-            //         usingCPU.setContextSwitching(true); //causes problem cuz contextSwitching never gets set back to false
-            //         timeOfSwitchOut = totalTime;
-            //     } else if (totalTime - timeOfSwitchOut == t_cs/2) { //switch out finished
-            //         usingCPU.setContextSwitching(false);
-            //         cpuInUse = false;
-            //         readyQueue.push(usingCPU); //should be pushing in at totalTime + t_cs/2
-            //     }
-            // }
+                    //start switch out
+                    usingCPU.setContextSwitching(true); //causes problem cuz contextSwitching never gets set back to false
+                    timeOfSwitchOut = totalTime;
+                } else if (totalTime - timeOfSwitchOut == t_cs/2) { //switch out finished
+                    usingCPU.setContextSwitching(false);
+                    cpuInUse = false;
+                    readyQueue.push(usingCPU); //should be pushing in at totalTime + t_cs/2
+                }
+            }
         }
 
         //check if a process can start using the cpu to execute a cpu burst (no process can be executing burst and context switch must finish first)
